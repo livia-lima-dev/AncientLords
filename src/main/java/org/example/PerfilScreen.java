@@ -8,114 +8,70 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 
 public class PerfilScreen extends Screen {
 
-    // =========================
-    // IMAGEM
-    // =========================
-
     private BufferedImage background;
 
-    // =========================
-    // FONTE MEDIEVAL
-    // =========================
-
     private Font medievalFont;
-
     private Font medievalSmallFont;
 
-    // =========================
-    // DADOS DO PERFIL
-    // =========================
-
-    private String savedUsername = "Jogador";
-
-    private String editingUsernameText = "Jogador";
-
-    private int nivel = 15;
-
-    private String classeMaisJogada = "Mago";
-
-    private int totalPartidas = 52;
-
-    private int vitorias = 34;
-
-    private int derrotas = 18;
-
-    // =========================
-    // CONTROLE
-    // =========================
+    private String editingUsernameText = PlayerData.nome;
 
     private boolean editingUsername = false;
 
-    // =========================
-    // ÁREAS CLICÁVEIS
-    // =========================
+    private boolean mostrarMensagemSalva = false;
+    private long tempoMensagemSalva = 0;
 
     private Rectangle usernameRect;
-
     private Rectangle salvarRect;
-
     private Rectangle voltarRect;
 
     public PerfilScreen() {
-
         super("perfil");
-
         loadImages();
-
         setupKeyboardInput();
-
         setupMouseInput();
     }
 
-    // =========================
-    // CARREGA IMAGEM + FONTE
-    // =========================
-
     private void loadImages() {
-
         try {
-
             background = ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/perfil/fundo_tela_perfil.png"
+                    Objects.requireNonNull(
+                            getClass().getResourceAsStream("/assets/perfil/fundo_tela_perfil.png")
                     )
             );
 
             medievalFont = Font.createFont(
                     Font.TRUETYPE_FONT,
-                    getClass().getResourceAsStream(
-                            "/assets/fontes/Cinzel-Bold.ttf"
+                    Objects.requireNonNull(
+                            getClass().getResourceAsStream("/assets/fontes/Cinzel-Bold.ttf")
                     )
             ).deriveFont(30f);
 
             medievalSmallFont = Font.createFont(
                     Font.TRUETYPE_FONT,
-                    getClass().getResourceAsStream(
-                            "/assets/fontes/Cinzel-Regular.ttf"
+                    Objects.requireNonNull(
+                            getClass().getResourceAsStream("/assets/fontes/Cinzel-Regular.ttf")
                     )
             ).deriveFont(24f);
 
-            GraphicsEnvironment ge =
-                    GraphicsEnvironment.getLocalGraphicsEnvironment();
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 
             ge.registerFont(medievalFont);
+            ge.registerFont(medievalSmallFont);
 
         } catch (Exception e) {
-
             e.printStackTrace();
         }
     }
 
-    // =========================
-    // TECLADO
-    // =========================
-
     private void setupKeyboardInput() {
-
         Input.keyboard().onKeyTyped(event -> {
+            if (!Game.screens().current().getName().equals("perfil")) {
+                return;
+            }
 
             if (!editingUsername) {
                 return;
@@ -123,451 +79,254 @@ public class PerfilScreen extends Screen {
 
             char c = event.getKeyChar();
 
-            if (
-                    c == KeyEvent.CHAR_UNDEFINED
-                            || Character.isISOControl(c)
-            ) {
+            if (c == KeyEvent.CHAR_UNDEFINED || Character.isISOControl(c)) {
                 return;
             }
 
-            editingUsernameText += c;
+            if (editingUsernameText.length() < 18) {
+                editingUsernameText += c;
+            }
         });
 
         Input.keyboard().onKeyPressed(event -> {
+            if (!Game.screens().current().getName().equals("perfil")) {
+                return;
+            }
 
             if (!editingUsername) {
                 return;
             }
 
-            // backspace
             if (event.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-
-                if (editingUsernameText.length() > 0) {
-
-                    editingUsernameText =
-                            editingUsernameText.substring(
-                                    0,
-                                    editingUsernameText.length() - 1
-                            );
+                if (!editingUsernameText.isEmpty()) {
+                    editingUsernameText = editingUsernameText.substring(0, editingUsernameText.length() - 1);
                 }
+            }
+
+            if (event.getKeyCode() == KeyEvent.VK_ENTER) {
+                salvarNome();
+            }
+
+            if (event.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                editingUsernameText = PlayerData.nome;
+                editingUsername = false;
             }
         });
     }
 
-    // =========================
-    // MOUSE
-    // =========================
-
     private void setupMouseInput() {
-
         Input.mouse().onClicked(event -> {
+            if (!Game.screens().current().getName().equals("perfil")) {
+                return;
+            }
 
             Point mousePosition = event.getPoint();
 
-            // clicar no nome
-            if (
-                    usernameRect != null &&
-                            usernameRect.contains(mousePosition)
-            ) {
-
-                editingUsername = true;
-
-                System.out.println(
-                        "EDITANDO NOME"
-                );
-            }
-
-            // salvar alteração
-            if (
-                    salvarRect != null &&
-                            salvarRect.contains(mousePosition)
-            ) {
-
-                savedUsername = editingUsernameText;
-
+            if (voltarRect != null && voltarRect.contains(mousePosition)) {
                 editingUsername = false;
-
-                System.out.println(
-                        "NOME SALVO: "
-                                + savedUsername
-                );
+                editingUsernameText = PlayerData.nome;
+                Game.screens().display("inicio");
+                return;
             }
 
-            // voltar
-            if (
-                    voltarRect != null &&
-                            voltarRect.contains(mousePosition)
-            ) {
+            if (usernameRect != null && usernameRect.contains(mousePosition)) {
+                editingUsername = true;
+                editingUsernameText = PlayerData.nome;
+                return;
+            }
 
-                System.out.println(
-                        "CLICOU EM VOLTAR"
-                );
+            if (salvarRect != null && salvarRect.contains(mousePosition)) {
+                salvarNome();
             }
         });
     }
 
-    // =========================
-    // TEXTO COM BORDA
-    // =========================
+    private void salvarNome() {
+        String nomeDigitado = editingUsernameText.trim();
 
-    private void drawOutlinedText(
-            Graphics2D g,
-            String text,
-            int x,
-            int y
-    ) {
+        if (!nomeDigitado.isEmpty()) {
+            PlayerData.nome = nomeDigitado;
+        }
 
-        // borda preta
+        editingUsernameText = PlayerData.nome;
+        editingUsername = false;
+
+        mostrarMensagemSalva = true;
+        tempoMensagemSalva = System.currentTimeMillis();
+    }
+
+    private void drawOutlinedText(Graphics2D g, String text, int x, int y, Color textColor) {
         g.setColor(Color.BLACK);
-
         g.drawString(text, x - 1, y - 1);
-
         g.drawString(text, x + 1, y - 1);
-
         g.drawString(text, x - 1, y + 1);
-
         g.drawString(text, x + 1, y + 1);
 
-        // texto branco
-        g.setColor(Color.WHITE);
-
+        g.setColor(textColor);
         g.drawString(text, x, y);
     }
 
-    // =========================
-    // RENDER
-    // =========================
-
     @Override
     public void render(Graphics2D g) {
-
         super.render(g);
 
-        int screenWidth =
-                Game.window().getWidth();
+        int screenWidth = Game.window().getWidth();
+        int screenHeight = Game.window().getHeight();
 
-        int screenHeight =
-                Game.window().getHeight();
+        g.drawImage(background, 0, 0, screenWidth, screenHeight, null);
 
-        // =========================
-        // FUNDO
-        // =========================
+        renderBotaoVoltar(g);
+        renderPerfil(g, screenWidth);
+        renderMensagemSalva(g, screenWidth);
+    }
 
-        g.drawImage(
-                background,
-                0,
-                0,
-                screenWidth,
-                screenHeight,
-                null
+    private void renderBotaoVoltar(Graphics2D g) {
+        g.setFont(medievalFont.deriveFont(22f));
+
+        String texto = "‹ Voltar";
+
+        FontMetrics metrics = g.getFontMetrics();
+
+        int x = 55;
+        int y = 75;
+
+        drawOutlinedText(g, texto, x, y, Color.WHITE);
+
+        voltarRect = new Rectangle(
+                x - 10,
+                y - 30,
+                metrics.stringWidth(texto) + 20,
+                40
         );
+    }
 
-        // =========================
-        // CONFIGURAÇÕES TEXTO
-        // =========================
+    private void renderPerfil(Graphics2D g, int screenWidth) {
+        int centerX = screenWidth / 2;
+        int startY = 210;
+        int spacing = 48;
 
         g.setFont(medievalFont);
 
-        FontMetrics metrics =
-                g.getFontMetrics();
+        FontMetrics metrics = g.getFontMetrics();
 
-        int centerX =
-                screenWidth / 2;
+        String nomeTexto = "Nome: " + editingUsernameText;
 
-        int startY = 150;
-
-        int spacing = 55;
-
-        // =========================
-        // NOME EDITÁVEL
-        // =========================
-
-        String nomeTexto =
-                "Nome: " + editingUsernameText;
-
-        int nomeX =
-                centerX -
-                        (
-                                metrics.stringWidth(nomeTexto) / 2
-                        );
-
+        int nomeX = centerX - metrics.stringWidth(nomeTexto) / 2;
         int nomeY = startY;
 
-        drawOutlinedText(
-                g,
-                nomeTexto,
-                nomeX,
-                nomeY
+        drawOutlinedText(g, nomeTexto, nomeX, nomeY, Color.WHITE);
+
+        usernameRect = new Rectangle(
+                nomeX - 10,
+                nomeY - 35,
+                metrics.stringWidth(nomeTexto) + 20,
+                45
         );
 
-        // área clicável
-        usernameRect =
-                new Rectangle(
-                        nomeX - 10,
-                        nomeY - 35,
-                        metrics.stringWidth(nomeTexto) + 20,
-                        45
-                );
-
-        // cursor visual
-        if (editingUsername) {
-
-            int cursorX =
-                    nomeX +
-                            metrics.stringWidth(nomeTexto)
-                            + 3;
-
-            drawOutlinedText(
-                    g,
-                    "|",
-                    cursorX,
-                    nomeY
-            );
+        if (editingUsername && (System.currentTimeMillis() / 500) % 2 == 0) {
+            int cursorX = nomeX + metrics.stringWidth(nomeTexto) + 5;
+            drawOutlinedText(g, "|", cursorX, nomeY, Color.WHITE);
         }
 
-        // =========================
-        // BOTÃO SALVAR
-        // =========================
-
-        g.setFont(medievalSmallFont);
-
-        String salvarTexto =
-                "Salvar alteração";
-
-        FontMetrics salvarMetrics =
-                g.getFontMetrics();
-
-        int salvarX =
-                centerX -
-                        (
-                                salvarMetrics.stringWidth(
-                                        salvarTexto
-                                ) / 2
-                        );
-
-        int salvarY =
-                nomeY + 60;
-
-        // =========================
-        // CAIXA DO BOTÃO
-        // =========================
-
-        int buttonPaddingX = 25;
-
-        int boxX =
-                salvarX - buttonPaddingX;
-
-        int boxY =
-                salvarY - 30;
-
-        int boxWidth =
-                salvarMetrics.stringWidth(
-                        salvarTexto
-                ) + (buttonPaddingX * 2);
-
-        int boxHeight = 45;
-
-        // fundo da caixa
-        g.setColor(
-                new Color(
-                        60,
-                        40,
-                        20,
-                        220
-                )
-        );
-
-        g.fillRoundRect(
-                boxX,
-                boxY,
-                boxWidth,
-                boxHeight,
-                15,
-                15
-        );
-
-        // borda dourada
-        g.setColor(
-                new Color(
-                        180,
-                        140,
-                        60
-                )
-        );
-
-        g.setStroke(
-                new BasicStroke(3)
-        );
-
-        g.drawRoundRect(
-                boxX,
-                boxY,
-                boxWidth,
-                boxHeight,
-                15,
-                15
-        );
-
-        // texto
-        drawOutlinedText(
-                g,
-                salvarTexto,
-                salvarX,
-                salvarY
-        );
-
-        // área clicável
-        salvarRect =
-                new Rectangle(
-                        boxX,
-                        boxY,
-                        boxWidth,
-                        boxHeight
-                );
-
-        // =========================
-        // RESTO DOS DADOS
-        // =========================
+        renderSalvar(g, centerX, nomeY);
 
         g.setFont(medievalFont);
-
         metrics = g.getFontMetrics();
 
-        // nível
-        String nivelTexto =
-                "Nível: " + nivel;
+        String nivelTexto = "Nível: " + PlayerData.nivel;
+        int nivelX = centerX - metrics.stringWidth(nivelTexto) / 2;
+        drawOutlinedText(g, nivelTexto, nivelX, startY + 20 + spacing * 2, Color.WHITE);
 
-        int nivelX =
-                centerX -
-                        (
-                                metrics.stringWidth(
-                                        nivelTexto
-                                ) / 2
-                        );
+        String classeTexto = "Classe favorita: " + PlayerData.classeMaisJogada;
+        int classeX = centerX - metrics.stringWidth(classeTexto) / 2;
+        drawOutlinedText(g, classeTexto, classeX, startY + spacing * 3 + 20, Color.WHITE);
 
-        drawOutlinedText(
-                g,
-                nivelTexto,
-                nivelX,
-                startY + 20 + spacing * 2
+        String partidasTexto = "Total de partidas: " + PlayerData.totalPartidas;
+        int partidasX = centerX - metrics.stringWidth(partidasTexto) / 2;
+        drawOutlinedText(g, partidasTexto, partidasX, startY + spacing * 4 + 20, Color.WHITE);
+
+        String vitoriasTexto = "Vitórias: " + PlayerData.vitorias;
+        int vitoriasX = centerX - metrics.stringWidth(vitoriasTexto) / 2;
+        drawOutlinedText(g, vitoriasTexto, vitoriasX, startY + spacing * 5 + 20, Color.WHITE);
+
+        String derrotasTexto = "Derrotas: " + PlayerData.derrotas;
+        int derrotasX = centerX - metrics.stringWidth(derrotasTexto) / 2;
+        drawOutlinedText(g, derrotasTexto, derrotasX, startY + spacing * 6 + 20, Color.WHITE);
+    }
+
+    private void renderSalvar(Graphics2D g, int centerX, int nomeY) {
+        g.setFont(medievalSmallFont);
+
+        FontMetrics salvarMetrics = g.getFontMetrics();
+
+        String salvarTexto = "Salvar alteração";
+
+        int salvarX = centerX - salvarMetrics.stringWidth(salvarTexto) / 2;
+        int salvarY = nomeY + 60;
+
+        int buttonPaddingX = 25;
+        int boxX = salvarX - buttonPaddingX;
+        int boxY = salvarY - 30;
+        int boxWidth = salvarMetrics.stringWidth(salvarTexto) + buttonPaddingX * 2;
+        int boxHeight = 45;
+
+        g.setColor(new Color(60, 40, 20, 220));
+        g.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 15, 15);
+
+        g.setColor(new Color(180, 140, 60));
+        g.setStroke(new BasicStroke(3));
+        g.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 15, 15);
+
+        drawOutlinedText(g, salvarTexto, salvarX, salvarY, Color.WHITE);
+
+        salvarRect = new Rectangle(
+                boxX,
+                boxY,
+                boxWidth,
+                boxHeight
+        );
+    }
+
+    private void renderMensagemSalva(Graphics2D g, int screenWidth) {
+        if (!mostrarMensagemSalva) {
+            return;
+        }
+
+        if (System.currentTimeMillis() - tempoMensagemSalva > 2000) {
+            mostrarMensagemSalva = false;
+            return;
+        }
+
+        g.setFont(medievalSmallFont.deriveFont(20f));
+
+        String mensagem = "Alterações salvas!";
+
+        FontMetrics metrics = g.getFontMetrics();
+
+        int x = (screenWidth - metrics.stringWidth(mensagem)) / 2;
+        int y = 620;
+
+        g.setColor(new Color(40, 120, 40, 220));
+        g.fillRoundRect(
+                x - 20,
+                y - 28,
+                metrics.stringWidth(mensagem) + 40,
+                40,
+                15,
+                15
         );
 
-        // classe
-        String classeTexto =
-                "Classe favorita: "
-                        + classeMaisJogada;
-
-        int classeX =
-                centerX -
-                        (
-                                metrics.stringWidth(
-                                        classeTexto
-                                ) / 2
-                        );
-
-        drawOutlinedText(
-                g,
-                classeTexto,
-                classeX,
-                startY + spacing * 3 + 20
+        g.setColor(new Color(180, 220, 180));
+        g.setStroke(new BasicStroke(2));
+        g.drawRoundRect(
+                x - 20,
+                y - 28,
+                metrics.stringWidth(mensagem) + 40,
+                40,
+                15,
+                15
         );
 
-        // partidas
-        String partidasTexto =
-                "Total de partidas: "
-                        + totalPartidas;
-
-        int partidasX =
-                centerX -
-                        (
-                                metrics.stringWidth(
-                                        partidasTexto
-                                ) / 2
-                        );
-
-        drawOutlinedText(
-                g,
-                partidasTexto,
-                partidasX,
-                startY + spacing * 4 + 20
-        );
-
-        // vitórias
-        String vitoriasTexto =
-                "Vitórias: " + vitorias;
-
-        int vitoriasX =
-                centerX -
-                        (
-                                metrics.stringWidth(
-                                        vitoriasTexto
-                                ) / 2
-                        );
-
-        drawOutlinedText(
-                g,
-                vitoriasTexto,
-                vitoriasX,
-                startY + spacing * 5 + 20
-        );
-
-        // derrotas
-        String derrotasTexto =
-                "Derrotas: " + derrotas;
-
-        int derrotasX =
-                centerX -
-                        (
-                                metrics.stringWidth(
-                                        derrotasTexto
-                                ) / 2
-                        );
-
-        drawOutlinedText(
-                g,
-                derrotasTexto,
-                derrotasX,
-                startY + spacing * 6 + 20
-        );
-
-        // =========================
-        // BOTÃO VOLTAR
-        // =========================
-
-        g.setFont(medievalFont.deriveFont(26f));
-
-        String voltarTexto =
-                "Voltar";
-
-        FontMetrics voltarMetrics =
-                g.getFontMetrics();
-
-        int voltarX =
-                centerX -
-                        (
-                                voltarMetrics.stringWidth(
-                                        voltarTexto
-                                ) / 2
-                        );
-
-        int voltarY =
-                screenHeight - 100;
-
-        drawOutlinedText(
-                g,
-                voltarTexto,
-                voltarX,
-                voltarY
-        );
-
-        voltarRect =
-                new Rectangle(
-                        voltarX - 10,
-                        voltarY - 30,
-                        voltarMetrics.stringWidth(
-                                voltarTexto
-                        ) + 20,
-                        40
-                );
+        drawOutlinedText(g, mensagem, x, y, Color.WHITE);
     }
 }
