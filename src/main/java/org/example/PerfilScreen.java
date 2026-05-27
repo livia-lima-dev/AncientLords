@@ -80,7 +80,7 @@ public class PerfilScreen extends Screen {
 
             background = ImageIO.read(
                     getClass().getResourceAsStream(
-                            "/assets/perfil/background_2.png"
+                            "/assets/perfil/fundo_tela_perfil.png"
                     )
             );
 

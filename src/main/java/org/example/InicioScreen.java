@@ -56,7 +56,7 @@ public class InicioScreen extends Screen {
 
             background = javax.imageio.ImageIO.read(
                     getClass().getResourceAsStream(
-                            "/assets/inicio/background.png"
+                            "/assets/inicio/fundo_tela_inicio.png"
                     )
             );
 
