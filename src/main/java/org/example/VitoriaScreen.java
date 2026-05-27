@@ -25,6 +25,8 @@ public class VitoriaScreen extends Screen {
 
     public VitoriaScreen() {
         super("vitoria");
+        PlayerData.vitorias++;
+        PlayerData.totalPartidas++;
         loadImages();
     }
 

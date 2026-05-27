@@ -25,6 +25,8 @@ public class DerrotaScreen extends Screen {
 
     public DerrotaScreen() {
         super("derrota");
+        PlayerData.derrotas++;
+        PlayerData.totalPartidas++;
         loadImages();
     }
 
