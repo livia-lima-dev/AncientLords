@@ -136,6 +136,7 @@ public class LoginScreen extends Screen {
             }
 
             if (cadastrarRect != null && cadastrarRect.contains(mousePosition)) {
+                mensagemErro = "";
                 Game.screens().display("cadastro");
             }
 

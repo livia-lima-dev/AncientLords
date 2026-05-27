@@ -4,704 +4,391 @@ import de.gurkenlabs.litiengine.Game;
 import de.gurkenlabs.litiengine.gui.screens.Screen;
 import de.gurkenlabs.litiengine.input.Input;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 
 public class CadastroScreen extends Screen {
 
     private BufferedImage background;
-
     private BufferedImage usuarioField;
-
     private BufferedImage emailField;
-
     private BufferedImage senhaField;
-
     private BufferedImage confirmarButton;
 
-    // =========================
-    // TEXTOS
-    // =========================
-
     private String username = "";
-
     private String email = "";
-
     private String password = "";
-
-
-    // =========================
-    // FONTE MEDIEVAL
-    // =========================
+    private String mensagemErro = "";
 
     private Font medievalFont;
 
-    // =========================
-    // CAMPOS SELECIONADOS
-    // =========================
-
     private boolean typingUsername = false;
-
     private boolean typingEmail = false;
-
     private boolean typingPassword = false;
 
-    // =========================
-    // ÁREAS CLICÁVEIS
-    // =========================
-
-    private Rectangle confirmarRect;
+    private long lastBlinkTime = 0;
+    private boolean showCursor = true;
 
     private Rectangle usernameRect;
-
     private Rectangle emailRect;
-
     private Rectangle passwordRect;
+    private Rectangle confirmarRect;
+    private Rectangle voltarRect;
+
+    private int screenWidth;
+    private int screenHeight;
+
+    private int fieldWidth;
+    private int fieldHeight;
+    private int fieldX;
+
+    private int buttonWidth;
+    private int buttonHeight;
+    private int buttonX;
+
+    private int inputPaddingLeft;
+    private int startY;
+    private int emailY;
+    private int senhaY;
+    private int confirmarY;
 
     public CadastroScreen() {
-
         super("cadastro");
-
         loadImages();
-
         setupKeyboardInput();
-
         setupMouseInput();
     }
 
-    // =========================
-    // CARREGA IMAGENS
-    // =========================
-
     private void loadImages() {
-
         try {
-
-            background = javax.imageio.ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/cadastro/fundo_tela_cadastro.png"
-                    )
-            );
-
-            usuarioField = javax.imageio.ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/cadastro/ct_usuario.png"
-                    )
-            );
-
-            emailField = javax.imageio.ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/cadastro/ct_email.png"
-                    )
-            );
-
-            senhaField = javax.imageio.ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/cadastro/ct_senha.png"
-                    )
-            );
-
-            confirmarButton = javax.imageio.ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/cadastro/btn_confirmar.png"
-                    )
-            );
+            background = loadImage("/assets/cadastro/fundo_tela_cadastro.png");
+            usuarioField = loadImage("/assets/cadastro/ct_usuario.png");
+            emailField = loadImage("/assets/cadastro/ct_email.png");
+            senhaField = loadImage("/assets/cadastro/ct_senha.png");
+            confirmarButton = loadImage("/assets/cadastro/btn_confirmar.png");
 
             medievalFont = Font.createFont(
                     Font.TRUETYPE_FONT,
-                    getClass().getResourceAsStream(
-                            "/assets/fontes/Cinzel-Bold.ttf"
+                    Objects.requireNonNull(
+                            getClass().getResourceAsStream("/assets/fontes/Cinzel-Bold.ttf")
                     )
             );
-
         } catch (Exception e) {
-
             e.printStackTrace();
         }
     }
 
-    // =========================
-    // TECLADO
-    // =========================
+    private BufferedImage loadImage(String path) throws Exception {
+        return ImageIO.read(
+                Objects.requireNonNull(
+                        getClass().getResourceAsStream(path)
+                )
+        );
+    }
 
     private void setupKeyboardInput() {
-
         Input.keyboard().onKeyTyped(event -> {
-
             char c = event.getKeyChar();
 
-            if (
-                    c == KeyEvent.CHAR_UNDEFINED
-                            || Character.isISOControl(c)
-            ) {
+            if (c == KeyEvent.CHAR_UNDEFINED || Character.isISOControl(c)) {
                 return;
             }
 
-            // usuário
             if (typingUsername) {
-
                 username += c;
-            }
-
-            // email
-            else if (typingEmail) {
-
+            } else if (typingEmail) {
                 email += c;
-            }
-
-            // senha
-            else if (typingPassword) {
-
+            } else if (typingPassword) {
                 password += c;
             }
         });
 
         Input.keyboard().onKeyReleased(event -> {
-
-            // backspace
             if (event.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+                apagarUltimoCaractere();
+            }
 
-                // usuário
-                if (typingUsername && username.length() > 0) {
-
-                    username =
-                            username.substring(
-                                    0,
-                                    username.length() - 1
-                            );
-                }
-
-                // email
-                else if (typingEmail && email.length() > 0) {
-
-                    email =
-                            email.substring(
-                                    0,
-                                    email.length() - 1
-                            );
-                }
-
-                // senha
-                else if (typingPassword && password.length() > 0) {
-
-                    password =
-                            password.substring(
-                                    0,
-                                    password.length() - 1
-                            );
-                }
+            if (event.getKeyCode() == KeyEvent.VK_TAB) {
+                alternarCampo();
             }
         });
     }
 
-    // =========================
-    // MOUSE
-    // =========================
+    private void apagarUltimoCaractere() {
+        if (typingUsername && username.length() > 0) {
+            username = username.substring(0, username.length() - 1);
+        } else if (typingEmail && email.length() > 0) {
+            email = email.substring(0, email.length() - 1);
+        } else if (typingPassword && password.length() > 0) {
+            password = password.substring(0, password.length() - 1);
+        }
+    }
+
+    private void alternarCampo() {
+        if (typingUsername) {
+            typingUsername = false;
+            typingEmail = true;
+            typingPassword = false;
+        } else if (typingEmail) {
+            typingUsername = false;
+            typingEmail = false;
+            typingPassword = true;
+        } else {
+            typingUsername = true;
+            typingEmail = false;
+            typingPassword = false;
+        }
+    }
 
     private void setupMouseInput() {
-
         Input.mouse().onClicked(event -> {
-
             Point mousePosition = event.getPoint();
 
-            // =========================
-            // CAMPO USUÁRIO
-            // =========================
-
-            if (
-                    usernameRect != null &&
-                            usernameRect.contains(mousePosition)
-            ) {
-
-                typingUsername = true;
-
-                typingEmail = false;
-
-                typingPassword = false;
+            if (voltarRect != null && voltarRect.contains(mousePosition)) {
+                mensagemErro = "";
+                limparSelecaoCampos();
+                Game.screens().display("login");
+                return;
             }
 
-            // =========================
-            // CAMPO EMAIL
-            // =========================
-
-            else if (
-                    emailRect != null &&
-                            emailRect.contains(mousePosition)
-            ) {
-
-                typingUsername = false;
-
-                typingEmail = true;
-
-                typingPassword = false;
+            if (usernameRect != null && usernameRect.contains(mousePosition)) {
+                selecionarCampoUsuario();
+            } else if (emailRect != null && emailRect.contains(mousePosition)) {
+                selecionarCampoEmail();
+            } else if (passwordRect != null && passwordRect.contains(mousePosition)) {
+                selecionarCampoSenha();
+            } else {
+                limparSelecaoCampos();
             }
 
-            // =========================
-            // CAMPO SENHA
-            // =========================
-
-            else if (
-                    passwordRect != null &&
-                            passwordRect.contains(mousePosition)
-            ) {
-
-                typingUsername = false;
-
-                typingEmail = false;
-
-                typingPassword = true;
-            }
-
-            // =========================
-            // BOTÃO CONFIRMAR
-            // =========================
-
-            if (
-                    confirmarRect != null &&
-                            confirmarRect.contains(mousePosition)
-            ) {
-
-                System.out.println(
-                        "CLICOU EM CONFIRMAR"
-                );
-
-                System.out.println(
-                        "USUÁRIO: " + username
-                );
-
-                System.out.println(
-                        "EMAIL: " + email
-                );
-
-                System.out.println(
-                        "SENHA: " + password
-                );
+            if (confirmarRect != null && confirmarRect.contains(mousePosition)) {
+                validarCadastro();
             }
         });
     }
 
-    // =========================
-    // TEXTO COM BORDA
-    // =========================
+    private void validarCadastro() {
+        if (
+                username.trim().isEmpty() ||
+                        email.trim().isEmpty() ||
+                        password.trim().isEmpty()
+        ) {
+            mensagemErro = "Preencha todos os campos";
+            return;
+        }
 
-    private void drawOutlinedText(
-            Graphics2D g,
-            String text,
-            int x,
-            int y
-    ) {
-
-        // borda preta
-        g.setColor(Color.BLACK);
-
-        g.drawString(text, x - 1, y - 1);
-
-        g.drawString(text, x + 1, y - 1);
-
-        g.drawString(text, x - 1, y + 1);
-
-        g.drawString(text, x + 1, y + 1);
-
-        // texto branco
-        g.setColor(Color.WHITE);
-
-        g.drawString(text, x, y);
+        mensagemErro = "";
+        Game.screens().display("inicio");
     }
 
-    // =========================
-    // RENDER
-    // =========================
+    private void selecionarCampoUsuario() {
+        typingUsername = true;
+        typingEmail = false;
+        typingPassword = false;
+    }
+
+    private void selecionarCampoEmail() {
+        typingUsername = false;
+        typingEmail = true;
+        typingPassword = false;
+    }
+
+    private void selecionarCampoSenha() {
+        typingUsername = false;
+        typingEmail = false;
+        typingPassword = true;
+    }
+
+    private void limparSelecaoCampos() {
+        typingUsername = false;
+        typingEmail = false;
+        typingPassword = false;
+    }
 
     @Override
     public void render(Graphics2D g) {
-
         super.render(g);
 
-        int screenWidth = Game.window().getWidth();
+        atualizarCursor();
+        calcularMedidas();
 
-        int screenHeight = Game.window().getHeight();
+        renderBackground(g);
+        renderCampoUsuario(g);
+        renderCampoEmail(g);
+        renderCampoSenha(g);
+        renderBotaoConfirmar(g);
+        renderMensagemErro(g);
+        renderBotaoVoltar(g);
+    }
 
-        // fundo
-        g.drawImage(
-                background,
-                0,
-                0,
-                screenWidth,
-                screenHeight,
-                null
-        );
+    private void atualizarCursor() {
+        if (System.currentTimeMillis() - lastBlinkTime > 500) {
+            showCursor = !showCursor;
+            lastBlinkTime = System.currentTimeMillis();
+        }
+    }
 
-        // =========================
-        // TAMANHOS
-        // =========================
+    private void calcularMedidas() {
+        screenWidth = Game.window().getWidth();
+        screenHeight = Game.window().getHeight();
 
-        int fieldWidth = 620;
+        fieldWidth = 620;
+        fieldHeight = 105;
+        fieldX = (screenWidth - fieldWidth) / 2;
 
-        int fieldHeight = 105;
+        buttonWidth = 420;
+        buttonHeight = 95;
+        buttonX = (screenWidth - buttonWidth) / 2;
 
-        int buttonWidth = 420;
-
-        int buttonHeight = 95;
-
-        // =========================
-        // POSIÇÕES
-        // =========================
-
-        int xField = (screenWidth - fieldWidth) / 2;
-
-        int xButton = (screenWidth - buttonWidth) / 2;
+        inputPaddingLeft = 210;
 
         int spacing = 22;
 
-        int startY = 250;
+        startY = 250;
+        emailY = startY + fieldHeight + spacing;
+        senhaY = startY + (fieldHeight + spacing) * 2;
+        confirmarY = startY + (fieldHeight + spacing) * 3 + 10;
+    }
 
-        // =========================
-        // FONTE DOS INPUTS
-        // =========================
+    private void renderBackground(Graphics2D g) {
+        g.drawImage(background, 0, 0, screenWidth, screenHeight, null);
+    }
 
-        Font inputFont =
-                new Font(
-                        "Arial",
-                        Font.BOLD,
-                        20
-                );
+    private void renderCampoUsuario(Graphics2D g) {
+        renderTitulo(g, "Usuário", startY - 10);
+        renderCampoTexto(g, usuarioField, username, fieldX, startY, false, typingUsername);
+        usernameRect = new Rectangle(fieldX, startY, fieldWidth, fieldHeight);
+    }
 
-        g.setFont(inputFont);
+    private void renderCampoEmail(Graphics2D g) {
+        renderTitulo(g, "E-mail", emailY - 4);
+        renderCampoTexto(g, emailField, email, fieldX, emailY, false, typingEmail);
+        emailRect = new Rectangle(fieldX, emailY, fieldWidth, fieldHeight);
+    }
 
-        FontMetrics metrics =
-                g.getFontMetrics();
+    private void renderCampoSenha(Graphics2D g) {
+        renderTitulo(g, "Criar senha", senhaY - 4);
+        renderCampoTexto(g, senhaField, password, fieldX, senhaY, true, typingPassword);
+        passwordRect = new Rectangle(fieldX, senhaY, fieldWidth, fieldHeight);
+    }
 
-        // =========================
-        // FONTE DOS TÍTULOS
-        // =========================
+    private void renderTitulo(Graphics2D g, String texto, int y) {
+        g.setFont(medievalFont.deriveFont(20f));
 
-        Font titleFont =
-                medievalFont.deriveFont(20f);
+        int x = centralizarTextoX(g, texto, 0, screenWidth);
 
-        // =========================
-        // TÍTULO USUÁRIO
-        // =========================
+        drawOutlinedText(g, texto, x, y, Color.WHITE);
+    }
 
-        g.setFont(titleFont);
+    private void renderCampoTexto(
+            Graphics2D g,
+            BufferedImage imagem,
+            String texto,
+            int x,
+            int y,
+            boolean senha,
+            boolean selecionado
+    ) {
+        g.drawImage(imagem, x, y, fieldWidth, fieldHeight, null);
 
-        String usuarioTitulo = "Usuário";
+        g.setFont(new Font("Arial", Font.BOLD, 20));
 
-        FontMetrics titleMetrics =
-                g.getFontMetrics();
+        String textoExibido = senha ? "*".repeat(texto.length()) : texto;
+        textoExibido = limitarTexto(g, textoExibido, fieldWidth - inputPaddingLeft - 40);
 
-        int usuarioTituloX =
-                (screenWidth -
-                        titleMetrics.stringWidth(
-                                usuarioTitulo
-                        )) / 2;
+        int textX = x + inputPaddingLeft;
+        int textY = y + (fieldHeight / 2) + 8;
 
-        int usuarioTituloY =
-                startY - 10;
+        drawOutlinedText(g, textoExibido, textX, textY, Color.WHITE);
 
-        drawOutlinedText(
-                g,
-                usuarioTitulo,
-                usuarioTituloX,
-                usuarioTituloY
-        );
-
-        // volta fonte do input
-        g.setFont(inputFont);
-
-        metrics = g.getFontMetrics();
-
-        // =========================
-        // CAMPO USUÁRIO
-        // =========================
-
-        g.drawImage(
-                usuarioField,
-                xField,
-                startY,
-                fieldWidth,
-                fieldHeight,
-                null
-        );
-
-        usernameRect =
-                new Rectangle(
-                        xField,
-                        startY,
-                        fieldWidth,
-                        fieldHeight
-                );
-
-        String displayedUsername = username;
-
-        while (
-                metrics.stringWidth(displayedUsername)
-                        > fieldWidth - 180
-        ) {
-
-            displayedUsername =
-                    displayedUsername.substring(1);
+        if (selecionado && showCursor) {
+            int cursorX = textX + g.getFontMetrics().stringWidth(textoExibido) + 3;
+            drawOutlinedText(g, "|", cursorX, textY, Color.WHITE);
         }
+    }
 
-        int usernameTextX =
-                xField +
-                        (fieldWidth / 2) -
-                        (
-                                metrics.stringWidth(displayedUsername)
-                                        / 2
-                        );
-
-        int usernameTextY =
-                startY + (fieldHeight / 2) + 8;
-
-        drawOutlinedText(
-                g,
-                displayedUsername,
-                usernameTextX,
-                usernameTextY
-        );
-
-        // cursor
-        if (typingUsername) {
-
-            int cursorX =
-                    usernameTextX +
-                            metrics.stringWidth(
-                                    displayedUsername
-                            ) + 3;
-
-            drawOutlinedText(
-                    g,
-                    "|",
-                    cursorX,
-                    usernameTextY
-            );
-        }
-
-        // =========================
-        // CAMPO EMAIL
-        // =========================
-
-        int emailY =
-                startY + fieldHeight + spacing;
-
-        // título email
-        g.setFont(titleFont);
-
-        String emailTitulo = "E-mail";
-
-        titleMetrics =
-                g.getFontMetrics();
-
-        int emailTituloX =
-                (screenWidth -
-                        titleMetrics.stringWidth(
-                                emailTitulo
-                        )) / 2;
-
-        int emailTituloY =
-                emailY - 4;
-
-        drawOutlinedText(
-                g,
-                emailTitulo,
-                emailTituloX,
-                emailTituloY
-        );
-
-        // volta fonte do input
-        g.setFont(inputFont);
-
-        metrics = g.getFontMetrics();
-
-        g.drawImage(
-                emailField,
-                xField,
-                emailY,
-                fieldWidth,
-                fieldHeight,
-                null
-        );
-
-        emailRect =
-                new Rectangle(
-                        xField,
-                        emailY,
-                        fieldWidth,
-                        fieldHeight
-                );
-
-        String displayedEmail = email;
-
-        while (
-                metrics.stringWidth(displayedEmail)
-                        > fieldWidth - 180
-        ) {
-
-            displayedEmail =
-                    displayedEmail.substring(1);
-        }
-
-        int emailTextX =
-                xField +
-                        (fieldWidth / 2) -
-                        (
-                                metrics.stringWidth(displayedEmail)
-                                        / 2
-                        );
-
-        int emailTextY =
-                emailY + (fieldHeight / 2) + 8;
-
-        drawOutlinedText(
-                g,
-                displayedEmail,
-                emailTextX,
-                emailTextY
-        );
-
-        // cursor
-        if (typingEmail) {
-
-            int cursorX =
-                    emailTextX +
-                            metrics.stringWidth(
-                                    displayedEmail
-                            ) + 3;
-
-            drawOutlinedText(
-                    g,
-                    "|",
-                    cursorX,
-                    emailTextY
-            );
-        }
-
-        // =========================
-        // CAMPO SENHA
-        // =========================
-
-        int senhaY =
-                startY + (fieldHeight + spacing) * 2;
-
-        // título senha
-        g.setFont(titleFont);
-
-        String senhaTitulo = "Criar senha";
-
-        titleMetrics =
-                g.getFontMetrics();
-
-        int senhaTituloX =
-                (screenWidth -
-                        titleMetrics.stringWidth(
-                                senhaTitulo
-                        )) / 2;
-
-        int senhaTituloY =
-                senhaY - 4;
-
-        drawOutlinedText(
-                g,
-                senhaTitulo,
-                senhaTituloX,
-                senhaTituloY
-        );
-
-        // volta fonte do input
-        g.setFont(inputFont);
-
-        metrics = g.getFontMetrics();
-
-        g.drawImage(
-                senhaField,
-                xField,
-                senhaY,
-                fieldWidth,
-                fieldHeight,
-                null
-        );
-
-        passwordRect =
-                new Rectangle(
-                        xField,
-                        senhaY,
-                        fieldWidth,
-                        fieldHeight
-                );
-
-        String hiddenPassword =
-                "*".repeat(password.length());
-
-        String displayedPassword =
-                hiddenPassword;
-
-        while (
-                metrics.stringWidth(displayedPassword)
-                        > fieldWidth - 180
-        ) {
-
-            displayedPassword =
-                    displayedPassword.substring(1);
-        }
-
-        int passwordTextX =
-                xField +
-                        (fieldWidth / 2) -
-                        (
-                                metrics.stringWidth(displayedPassword)
-                                        / 2
-                        );
-
-        int passwordTextY =
-                senhaY + (fieldHeight / 2) + 8;
-
-        drawOutlinedText(
-                g,
-                displayedPassword,
-                passwordTextX,
-                passwordTextY
-        );
-
-        // cursor
-        if (typingPassword) {
-
-            int cursorX =
-                    passwordTextX +
-                            metrics.stringWidth(
-                                    displayedPassword
-                            ) + 3;
-
-            drawOutlinedText(
-                    g,
-                    "|",
-                    cursorX,
-                    passwordTextY
-            );
-        }
-
-        // =========================
-        // BOTÃO CONFIRMAR
-        // =========================
-
-        int confirmarY =
-                startY + (fieldHeight + spacing) * 3 + 10;
-
+    private void renderBotaoConfirmar(Graphics2D g) {
         g.drawImage(
                 confirmarButton,
-                xButton,
+                buttonX,
                 confirmarY,
                 buttonWidth,
                 buttonHeight,
                 null
         );
 
-        confirmarRect =
-                new Rectangle(
-                        xButton,
-                        confirmarY,
-                        buttonWidth,
-                        buttonHeight
-                );
+        confirmarRect = new Rectangle(
+                buttonX,
+                confirmarY,
+                buttonWidth,
+                buttonHeight
+        );
+    }
+
+    private void renderMensagemErro(Graphics2D g) {
+        if (mensagemErro.isEmpty()) {
+            return;
+        }
+
+        g.setFont(new Font("Arial", Font.BOLD, 18));
+
+        int x = centralizarTextoX(g, mensagemErro, 0, screenWidth);
+        int y = confirmarY + buttonHeight + 25;
+
+        drawOutlinedText(g, mensagemErro, x, y, Color.RED);
+    }
+
+    private void renderBotaoVoltar(Graphics2D g) {
+        g.setFont(medievalFont.deriveFont(22f));
+
+        String texto = "‹ Voltar";
+
+        FontMetrics metrics = g.getFontMetrics();
+
+        int x = 55;
+        int y = 75;
+
+        drawOutlinedText(g, texto, x, y, Color.WHITE);
+
+        voltarRect = new Rectangle(
+                x - 10,
+                y - 30,
+                metrics.stringWidth(texto) + 20,
+                40
+        );
+    }
+
+    private String limitarTexto(Graphics2D g, String texto, int larguraMaxima) {
+        while (g.getFontMetrics().stringWidth(texto) > larguraMaxima) {
+            texto = texto.substring(1);
+        }
+
+        return texto;
+    }
+
+    private int centralizarTextoX(Graphics2D g, String texto, int x, int width) {
+        return x + (width / 2) - (g.getFontMetrics().stringWidth(texto) / 2);
+    }
+
+    private void drawOutlinedText(
+            Graphics2D g,
+            String text,
+            int x,
+            int y,
+            Color mainColor
+    ) {
+        g.setColor(Color.BLACK);
+
+        g.drawString(text, x - 1, y - 1);
+        g.drawString(text, x + 1, y - 1);
+        g.drawString(text, x - 1, y + 1);
+        g.drawString(text, x + 1, y + 1);
+
+        g.setColor(mainColor);
+
+        g.drawString(text, x, y);
     }
 }
