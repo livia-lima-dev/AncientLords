@@ -23,7 +23,7 @@ public class Main {
 
         // adiciona tela de login
         Game.screens().add(
-                new LoginScreen()
+                new ConfiguracoesScreen()
         );
 
         // exibe tela

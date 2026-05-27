@@ -129,7 +129,7 @@ public class LoginScreen extends Screen {
             }
         });
 
-        Input.keyboard().onKeyPressed(event -> {
+        Input.keyboard().onKeyReleased(event -> {
 
             // backspace
             if (event.getKeyCode() == KeyEvent.VK_BACK_SPACE) {

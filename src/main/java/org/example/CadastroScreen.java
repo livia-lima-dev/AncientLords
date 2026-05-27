@@ -30,21 +30,34 @@ public class CadastroScreen extends Screen {
 
     private String password = "";
 
+
+    // =========================
+    // FONTE MEDIEVAL
+    // =========================
+
+    private Font medievalFont;
+
     // =========================
     // CAMPOS SELECIONADOS
     // =========================
 
-    private boolean typingUsername = true;
+    private boolean typingUsername = false;
 
     private boolean typingEmail = false;
 
     private boolean typingPassword = false;
 
     // =========================
-    // BOTÃO CLICÁVEL
+    // ÁREAS CLICÁVEIS
     // =========================
 
     private Rectangle confirmarRect;
+
+    private Rectangle usernameRect;
+
+    private Rectangle emailRect;
+
+    private Rectangle passwordRect;
 
     public CadastroScreen() {
 
@@ -95,6 +108,13 @@ public class CadastroScreen extends Screen {
                     )
             );
 
+            medievalFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    getClass().getResourceAsStream(
+                            "/assets/fontes/Cinzel-Bold.ttf"
+                    )
+            );
+
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -111,7 +131,10 @@ public class CadastroScreen extends Screen {
 
             char c = event.getKeyChar();
 
-            if (Character.isISOControl(c)) {
+            if (
+                    c == KeyEvent.CHAR_UNDEFINED
+                            || Character.isISOControl(c)
+            ) {
                 return;
             }
 
@@ -134,7 +157,7 @@ public class CadastroScreen extends Screen {
             }
         });
 
-        Input.keyboard().onKeyPressed(event -> {
+        Input.keyboard().onKeyReleased(event -> {
 
             // backspace
             if (event.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
@@ -169,34 +192,6 @@ public class CadastroScreen extends Screen {
                             );
                 }
             }
-
-            // TAB alterna campos
-            if (event.getKeyCode() == KeyEvent.VK_TAB) {
-
-                // usuário -> email
-                if (typingUsername) {
-
-                    typingUsername = false;
-
-                    typingEmail = true;
-                }
-
-                // email -> senha
-                else if (typingEmail) {
-
-                    typingEmail = false;
-
-                    typingPassword = true;
-                }
-
-                // senha -> usuário
-                else if (typingPassword) {
-
-                    typingPassword = false;
-
-                    typingUsername = true;
-                }
-            }
         });
     }
 
@@ -209,6 +204,58 @@ public class CadastroScreen extends Screen {
         Input.mouse().onClicked(event -> {
 
             Point mousePosition = event.getPoint();
+
+            // =========================
+            // CAMPO USUÁRIO
+            // =========================
+
+            if (
+                    usernameRect != null &&
+                            usernameRect.contains(mousePosition)
+            ) {
+
+                typingUsername = true;
+
+                typingEmail = false;
+
+                typingPassword = false;
+            }
+
+            // =========================
+            // CAMPO EMAIL
+            // =========================
+
+            else if (
+                    emailRect != null &&
+                            emailRect.contains(mousePosition)
+            ) {
+
+                typingUsername = false;
+
+                typingEmail = true;
+
+                typingPassword = false;
+            }
+
+            // =========================
+            // CAMPO SENHA
+            // =========================
+
+            else if (
+                    passwordRect != null &&
+                            passwordRect.contains(mousePosition)
+            ) {
+
+                typingUsername = false;
+
+                typingEmail = false;
+
+                typingPassword = true;
+            }
+
+            // =========================
+            // BOTÃO CONFIRMAR
+            // =========================
 
             if (
                     confirmarRect != null &&
@@ -232,6 +279,34 @@ public class CadastroScreen extends Screen {
                 );
             }
         });
+    }
+
+    // =========================
+    // TEXTO COM BORDA
+    // =========================
+
+    private void drawOutlinedText(
+            Graphics2D g,
+            String text,
+            int x,
+            int y
+    ) {
+
+        // borda preta
+        g.setColor(Color.BLACK);
+
+        g.drawString(text, x - 1, y - 1);
+
+        g.drawString(text, x + 1, y - 1);
+
+        g.drawString(text, x - 1, y + 1);
+
+        g.drawString(text, x + 1, y + 1);
+
+        // texto branco
+        g.setColor(Color.WHITE);
+
+        g.drawString(text, x, y);
     }
 
     // =========================
@@ -282,6 +357,61 @@ public class CadastroScreen extends Screen {
         int startY = 250;
 
         // =========================
+        // FONTE DOS INPUTS
+        // =========================
+
+        Font inputFont =
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        20
+                );
+
+        g.setFont(inputFont);
+
+        FontMetrics metrics =
+                g.getFontMetrics();
+
+        // =========================
+        // FONTE DOS TÍTULOS
+        // =========================
+
+        Font titleFont =
+                medievalFont.deriveFont(20f);
+
+        // =========================
+        // TÍTULO USUÁRIO
+        // =========================
+
+        g.setFont(titleFont);
+
+        String usuarioTitulo = "Usuário";
+
+        FontMetrics titleMetrics =
+                g.getFontMetrics();
+
+        int usuarioTituloX =
+                (screenWidth -
+                        titleMetrics.stringWidth(
+                                usuarioTitulo
+                        )) / 2;
+
+        int usuarioTituloY =
+                startY - 10;
+
+        drawOutlinedText(
+                g,
+                usuarioTitulo,
+                usuarioTituloX,
+                usuarioTituloY
+        );
+
+        // volta fonte do input
+        g.setFont(inputFont);
+
+        metrics = g.getFontMetrics();
+
+        // =========================
         // CAMPO USUÁRIO
         // =========================
 
@@ -294,20 +424,18 @@ public class CadastroScreen extends Screen {
                 null
         );
 
-        // TEXTO USUÁRIO
-
-        g.setFont(
-                new Font(
-                        "Arial",
-                        Font.BOLD,
-                        20
-                )
-        );
+        usernameRect =
+                new Rectangle(
+                        xField,
+                        startY,
+                        fieldWidth,
+                        fieldHeight
+                );
 
         String displayedUsername = username;
 
         while (
-                g.getFontMetrics().stringWidth(displayedUsername)
+                metrics.stringWidth(displayedUsername)
                         > fieldWidth - 180
         ) {
 
@@ -319,49 +447,36 @@ public class CadastroScreen extends Screen {
                 xField +
                         (fieldWidth / 2) -
                         (
-                                g.getFontMetrics()
-                                        .stringWidth(displayedUsername)
+                                metrics.stringWidth(displayedUsername)
                                         / 2
                         );
 
         int usernameTextY =
                 startY + (fieldHeight / 2) + 8;
 
-        // borda preta
-        g.setColor(Color.BLACK);
-
-        g.drawString(
-                displayedUsername,
-                usernameTextX - 1,
-                usernameTextY - 1
-        );
-
-        g.drawString(
-                displayedUsername,
-                usernameTextX + 1,
-                usernameTextY - 1
-        );
-
-        g.drawString(
-                displayedUsername,
-                usernameTextX - 1,
-                usernameTextY + 1
-        );
-
-        g.drawString(
-                displayedUsername,
-                usernameTextX + 1,
-                usernameTextY + 1
-        );
-
-        // texto branco
-        g.setColor(Color.WHITE);
-
-        g.drawString(
+        drawOutlinedText(
+                g,
                 displayedUsername,
                 usernameTextX,
                 usernameTextY
         );
+
+        // cursor
+        if (typingUsername) {
+
+            int cursorX =
+                    usernameTextX +
+                            metrics.stringWidth(
+                                    displayedUsername
+                            ) + 3;
+
+            drawOutlinedText(
+                    g,
+                    "|",
+                    cursorX,
+                    usernameTextY
+            );
+        }
 
         // =========================
         // CAMPO EMAIL
@@ -369,6 +484,35 @@ public class CadastroScreen extends Screen {
 
         int emailY =
                 startY + fieldHeight + spacing;
+
+        // título email
+        g.setFont(titleFont);
+
+        String emailTitulo = "E-mail";
+
+        titleMetrics =
+                g.getFontMetrics();
+
+        int emailTituloX =
+                (screenWidth -
+                        titleMetrics.stringWidth(
+                                emailTitulo
+                        )) / 2;
+
+        int emailTituloY =
+                emailY - 4;
+
+        drawOutlinedText(
+                g,
+                emailTitulo,
+                emailTituloX,
+                emailTituloY
+        );
+
+        // volta fonte do input
+        g.setFont(inputFont);
+
+        metrics = g.getFontMetrics();
 
         g.drawImage(
                 emailField,
@@ -379,12 +523,18 @@ public class CadastroScreen extends Screen {
                 null
         );
 
-        // TEXTO EMAIL
+        emailRect =
+                new Rectangle(
+                        xField,
+                        emailY,
+                        fieldWidth,
+                        fieldHeight
+                );
 
         String displayedEmail = email;
 
         while (
-                g.getFontMetrics().stringWidth(displayedEmail)
+                metrics.stringWidth(displayedEmail)
                         > fieldWidth - 180
         ) {
 
@@ -396,49 +546,36 @@ public class CadastroScreen extends Screen {
                 xField +
                         (fieldWidth / 2) -
                         (
-                                g.getFontMetrics()
-                                        .stringWidth(displayedEmail)
+                                metrics.stringWidth(displayedEmail)
                                         / 2
                         );
 
         int emailTextY =
                 emailY + (fieldHeight / 2) + 8;
 
-        // borda preta
-        g.setColor(Color.BLACK);
-
-        g.drawString(
-                displayedEmail,
-                emailTextX - 1,
-                emailTextY - 1
-        );
-
-        g.drawString(
-                displayedEmail,
-                emailTextX + 1,
-                emailTextY - 1
-        );
-
-        g.drawString(
-                displayedEmail,
-                emailTextX - 1,
-                emailTextY + 1
-        );
-
-        g.drawString(
-                displayedEmail,
-                emailTextX + 1,
-                emailTextY + 1
-        );
-
-        // texto branco
-        g.setColor(Color.WHITE);
-
-        g.drawString(
+        drawOutlinedText(
+                g,
                 displayedEmail,
                 emailTextX,
                 emailTextY
         );
+
+        // cursor
+        if (typingEmail) {
+
+            int cursorX =
+                    emailTextX +
+                            metrics.stringWidth(
+                                    displayedEmail
+                            ) + 3;
+
+            drawOutlinedText(
+                    g,
+                    "|",
+                    cursorX,
+                    emailTextY
+            );
+        }
 
         // =========================
         // CAMPO SENHA
@@ -446,6 +583,35 @@ public class CadastroScreen extends Screen {
 
         int senhaY =
                 startY + (fieldHeight + spacing) * 2;
+
+        // título senha
+        g.setFont(titleFont);
+
+        String senhaTitulo = "Criar senha";
+
+        titleMetrics =
+                g.getFontMetrics();
+
+        int senhaTituloX =
+                (screenWidth -
+                        titleMetrics.stringWidth(
+                                senhaTitulo
+                        )) / 2;
+
+        int senhaTituloY =
+                senhaY - 4;
+
+        drawOutlinedText(
+                g,
+                senhaTitulo,
+                senhaTituloX,
+                senhaTituloY
+        );
+
+        // volta fonte do input
+        g.setFont(inputFont);
+
+        metrics = g.getFontMetrics();
 
         g.drawImage(
                 senhaField,
@@ -456,7 +622,13 @@ public class CadastroScreen extends Screen {
                 null
         );
 
-        // TEXTO SENHA
+        passwordRect =
+                new Rectangle(
+                        xField,
+                        senhaY,
+                        fieldWidth,
+                        fieldHeight
+                );
 
         String hiddenPassword =
                 "*".repeat(password.length());
@@ -465,7 +637,7 @@ public class CadastroScreen extends Screen {
                 hiddenPassword;
 
         while (
-                g.getFontMetrics().stringWidth(displayedPassword)
+                metrics.stringWidth(displayedPassword)
                         > fieldWidth - 180
         ) {
 
@@ -477,49 +649,36 @@ public class CadastroScreen extends Screen {
                 xField +
                         (fieldWidth / 2) -
                         (
-                                g.getFontMetrics()
-                                        .stringWidth(displayedPassword)
+                                metrics.stringWidth(displayedPassword)
                                         / 2
                         );
 
         int passwordTextY =
                 senhaY + (fieldHeight / 2) + 8;
 
-        // borda preta
-        g.setColor(Color.BLACK);
-
-        g.drawString(
-                displayedPassword,
-                passwordTextX - 1,
-                passwordTextY - 1
-        );
-
-        g.drawString(
-                displayedPassword,
-                passwordTextX + 1,
-                passwordTextY - 1
-        );
-
-        g.drawString(
-                displayedPassword,
-                passwordTextX - 1,
-                passwordTextY + 1
-        );
-
-        g.drawString(
-                displayedPassword,
-                passwordTextX + 1,
-                passwordTextY + 1
-        );
-
-        // texto branco
-        g.setColor(Color.WHITE);
-
-        g.drawString(
+        drawOutlinedText(
+                g,
                 displayedPassword,
                 passwordTextX,
                 passwordTextY
         );
+
+        // cursor
+        if (typingPassword) {
+
+            int cursorX =
+                    passwordTextX +
+                            metrics.stringWidth(
+                                    displayedPassword
+                            ) + 3;
+
+            drawOutlinedText(
+                    g,
+                    "|",
+                    cursorX,
+                    passwordTextY
+            );
+        }
 
         // =========================
         // BOTÃO CONFIRMAR
@@ -537,7 +696,6 @@ public class CadastroScreen extends Screen {
                 null
         );
 
-        // área clicável
         confirmarRect =
                 new Rectangle(
                         xButton,
