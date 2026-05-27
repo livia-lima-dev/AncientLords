@@ -163,9 +163,6 @@ public class LoginScreen extends Screen {
         });
     }
 
-    // =========================
-    // MOUSE
-    // =========================
 
     private void setupMouseInput() {
 
@@ -173,9 +170,6 @@ public class LoginScreen extends Screen {
 
             Point mousePosition = event.getPoint();
 
-            // =========================
-            // ESQUECEU SENHA
-            // =========================
 
             if (
                     esqueceuSenhaRect != null &&
@@ -187,23 +181,14 @@ public class LoginScreen extends Screen {
                 );
             }
 
-            // =========================
-            // CADASTRAR-SE
-            // =========================
 
             if (
                     cadastrarRect != null &&
                             cadastrarRect.contains(mousePosition)
             ) {
-
-                System.out.println(
-                        "CLICOU EM CADASTRAR-SE"
-                );
+                Game.screens().display("cadastro");
             }
 
-            // =========================
-            // CONFIRMAR
-            // =========================
 
             if (
                     confirmarRect != null &&
@@ -214,20 +199,23 @@ public class LoginScreen extends Screen {
                         "CLICOU EM CONFIRMAR"
                 );
 
-                System.out.println(
-                        "USUÁRIO: " + username
-                );
+                if (
+                        username.equals("admin") &&
+                                password.equals("123")
+                ) {
 
-                System.out.println(
-                        "SENHA: " + password
-                );
+                    Game.screens().display("inicio");
+
+                } else {
+
+                    System.out.println(
+                            "Usuário ou senha inválidos"
+                    );
+                }
             }
         });
     }
 
-    // =========================
-    // RENDER
-    // =========================
 
     @Override
     public void render(Graphics2D g) {

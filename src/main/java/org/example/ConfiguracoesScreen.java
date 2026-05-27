@@ -88,7 +88,7 @@ public class ConfiguracoesScreen extends Screen {
 
             background = ImageIO.read(
                     getClass().getResourceAsStream(
-                            "/assets/configuracoes/background_2.png"
+                            "/assets/configuracoes/fundo_tela_configuracoes.png"
                     )
             );
 
