@@ -59,14 +59,18 @@ public class LoginScreen extends Screen {
 
     private void loadImages() {
         try {
+
             background = loadImage("/assets/login/fundo_tela_login.png");
             logo = loadImage("/assets/login/logo.png");
             usuarioInput = loadImage("/assets/login/ct_usuario.png");
             senhaInput = loadImage("/assets/login/ct_senha.png");
             confirmarButton = loadImage("/assets/login/btn_confirmar.png");
+
         } catch (Exception e) {
+
             System.out.println("ERRO AO CARREGAR IMAGENS");
             e.printStackTrace();
+
         }
     }
 
@@ -85,7 +89,6 @@ public class LoginScreen extends Screen {
             if (Character.isISOControl(c)) {
                 return;
             }
-
             if (typingUsername) {
                 username += c;
             } else if (typingPassword) {
@@ -97,7 +100,6 @@ public class LoginScreen extends Screen {
             if (event.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
                 apagarUltimoCaractere();
             }
-
             if (event.getKeyCode() == KeyEvent.VK_TAB) {
                 alternarCampo();
             }
@@ -125,21 +127,17 @@ public class LoginScreen extends Screen {
                 typingUsername = true;
                 typingPassword = false;
             }
-
             if (senhaRect != null && senhaRect.contains(mousePosition)) {
                 typingUsername = false;
                 typingPassword = true;
             }
-
             if (esqueceuSenhaRect != null && esqueceuSenhaRect.contains(mousePosition)) {
                 System.out.println("CLICOU EM ESQUECEU SENHA");
             }
-
             if (cadastrarRect != null && cadastrarRect.contains(mousePosition)) {
                 mensagemErro = "";
                 Game.screens().display("cadastro");
             }
-
             if (confirmarRect != null && confirmarRect.contains(mousePosition)) {
                 validarLogin();
             }
@@ -258,32 +256,15 @@ public class LoginScreen extends Screen {
 
         int x = (screenWidth - metrics.stringWidth(texto)) / 2;
 
-        esqueceuSenhaRect = new Rectangle(
-                x,
-                esqueceuY - 20,
-                metrics.stringWidth(texto),
-                30
-        );
+        esqueceuSenhaRect = new Rectangle(x, esqueceuY - 20, metrics.stringWidth(texto), 30);
 
         drawOutlinedText(g, texto, x, esqueceuY, Color.WHITE);
     }
 
     private void renderBotaoConfirmar(Graphics2D g) {
-        g.drawImage(
-                confirmarButton,
-                confirmX,
-                confirmarY,
-                confirmWidth,
-                confirmHeight,
-                null
-        );
+        g.drawImage(confirmarButton, confirmX, confirmarY, confirmWidth, confirmHeight, null);
 
-        confirmarRect = new Rectangle(
-                confirmX,
-                confirmarY,
-                confirmWidth,
-                confirmHeight
-        );
+        confirmarRect = new Rectangle(confirmX, confirmarY, confirmWidth, confirmHeight);
     }
 
     private void renderMensagemErro(Graphics2D g) {
@@ -317,12 +298,7 @@ public class LoginScreen extends Screen {
         int y = confirmarY + confirmHeight + 65;
         int x = (screenWidth - metrics.stringWidth(texto)) / 2;
 
-        cadastrarRect = new Rectangle(
-                x,
-                y - 20,
-                metrics.stringWidth(texto),
-                30
-        );
+        cadastrarRect = new Rectangle(x, y - 20, metrics.stringWidth(texto), 30);
 
         drawOutlinedText(g, texto, x, y, Color.WHITE);
     }
