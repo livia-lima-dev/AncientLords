@@ -8,530 +8,266 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 
 public class LoginScreen extends Screen {
 
     private BufferedImage background;
-
     private BufferedImage logo;
-
     private BufferedImage usuarioInput;
-
     private BufferedImage senhaInput;
-
     private BufferedImage confirmarButton;
 
-    // =========================
-    // INPUTS
-    // =========================
-
     private String username = "";
-
     private String password = "";
+    private String mensagemErro = "";
 
-    private boolean typingUsername = true;
-
+    private long lastBlinkTime = 0;
+    private boolean showCursor = true;
+    private boolean typingUsername = false;
     private boolean typingPassword = false;
 
-    // =========================
-    // ÁREAS CLICÁVEIS
-    // =========================
-
     private Rectangle cadastrarRect;
-
     private Rectangle esqueceuSenhaRect;
-
     private Rectangle confirmarRect;
 
+    private int screenWidth;
+    private int screenHeight;
+
+    private int inputWidth;
+    private int inputHeight;
+    private int inputX;
+
+    private int confirmWidth;
+    private int confirmHeight;
+    private int confirmX;
+
+    private int startY;
+    private int senhaY;
+    private int esqueceuY;
+    private int confirmarY;
+
+    private Rectangle usuarioRect;
+    private Rectangle senhaRect;
+
     public LoginScreen() {
-
         super("login");
-
         loadImages();
-
         setupKeyboardInput();
-
         setupMouseInput();
     }
 
-    // =========================
-    // CARREGA IMAGENS
-    // =========================
-
     private void loadImages() {
-
         try {
-
-            background = ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/login/fundo_tela_login.png"
-                    )
-            );
-
-            logo = ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/login/logo.png"
-                    )
-            );
-
-            usuarioInput = ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/login/ct_usuario.png"
-                    )
-            );
-
-            senhaInput = ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/login/ct_senha.png"
-                    )
-            );
-
-            confirmarButton = ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/login/btn_confirmar.png"
-                    )
-            );
-
-            System.out.println("IMAGENS CARREGADAS!");
-
+            background = loadImage("/assets/login/fundo_tela_login.png");
+            logo = loadImage("/assets/login/logo.png");
+            usuarioInput = loadImage("/assets/login/ct_usuario.png");
+            senhaInput = loadImage("/assets/login/ct_senha.png");
+            confirmarButton = loadImage("/assets/login/btn_confirmar.png");
         } catch (Exception e) {
-
             System.out.println("ERRO AO CARREGAR IMAGENS");
-
             e.printStackTrace();
         }
     }
 
-    // =========================
-    // TECLADO
-    // =========================
+    private BufferedImage loadImage(String path) throws Exception {
+        return ImageIO.read(
+                Objects.requireNonNull(
+                        getClass().getResourceAsStream(path)
+                )
+        );
+    }
 
     private void setupKeyboardInput() {
-
         Input.keyboard().onKeyTyped(event -> {
-
             char c = event.getKeyChar();
 
             if (Character.isISOControl(c)) {
                 return;
             }
 
-            // usuário
             if (typingUsername) {
-
                 username += c;
-            }
-
-            // senha
-            else if (typingPassword) {
-
+            } else if (typingPassword) {
                 password += c;
             }
         });
 
         Input.keyboard().onKeyReleased(event -> {
-
-            // backspace
             if (event.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-
-                if (typingUsername && username.length() > 0) {
-
-                    username =
-                            username.substring(
-                                    0,
-                                    username.length() - 1
-                            );
-                }
-
-                else if (typingPassword && password.length() > 0) {
-
-                    password =
-                            password.substring(
-                                    0,
-                                    password.length() - 1
-                            );
-                }
+                apagarUltimoCaractere();
             }
 
-            // TAB alterna campo
             if (event.getKeyCode() == KeyEvent.VK_TAB) {
-
-                typingUsername = !typingUsername;
-
-                typingPassword = !typingPassword;
+                alternarCampo();
             }
         });
     }
 
+    private void apagarUltimoCaractere() {
+        if (typingUsername && username.length() > 0) {
+            username = username.substring(0, username.length() - 1);
+        } else if (typingPassword && password.length() > 0) {
+            password = password.substring(0, password.length() - 1);
+        }
+    }
+
+    private void alternarCampo() {
+        typingUsername = !typingUsername;
+        typingPassword = !typingPassword;
+    }
 
     private void setupMouseInput() {
-
         Input.mouse().onClicked(event -> {
-
             Point mousePosition = event.getPoint();
 
-
-            if (
-                    esqueceuSenhaRect != null &&
-                            esqueceuSenhaRect.contains(mousePosition)
-            ) {
-
-                System.out.println(
-                        "CLICOU EM ESQUECEU SENHA"
-                );
+            if (usuarioRect != null && usuarioRect.contains(mousePosition)) {
+                typingUsername = true;
+                typingPassword = false;
             }
 
+            if (senhaRect != null && senhaRect.contains(mousePosition)) {
+                typingUsername = false;
+                typingPassword = true;
+            }
 
-            if (
-                    cadastrarRect != null &&
-                            cadastrarRect.contains(mousePosition)
-            ) {
+            if (esqueceuSenhaRect != null && esqueceuSenhaRect.contains(mousePosition)) {
+                System.out.println("CLICOU EM ESQUECEU SENHA");
+            }
+
+            if (cadastrarRect != null && cadastrarRect.contains(mousePosition)) {
                 Game.screens().display("cadastro");
             }
 
-
-            if (
-                    confirmarRect != null &&
-                            confirmarRect.contains(mousePosition)
-            ) {
-
-                System.out.println(
-                        "CLICOU EM CONFIRMAR"
-                );
-
-                if (
-                        username.equals("admin") &&
-                                password.equals("123")
-                ) {
-
-                    Game.screens().display("inicio");
-
-                } else {
-
-                    System.out.println(
-                            "Usuário ou senha inválidos"
-                    );
-                }
+            if (confirmarRect != null && confirmarRect.contains(mousePosition)) {
+                validarLogin();
             }
         });
     }
 
+    private void validarLogin() {
+        if (username.equals("admin") && password.equals("123")) {
+            mensagemErro = "";
+            Game.screens().display("inicio");
+        } else {
+            mensagemErro = "Usuário ou senha inválidos";
+        }
+    }
 
     @Override
     public void render(Graphics2D g) {
-
         super.render(g);
 
-        int screenWidth =
-                Game.window().getWidth();
-
-        int screenHeight =
-                Game.window().getHeight();
-
-        // fundo
-        g.drawImage(
-                background,
-                0,
-                0,
-                screenWidth,
-                screenHeight,
-                null
-        );
-
-        // =========================
-        // TAMANHOS
-        // =========================
-
-        int logoWidth =
-                (int) (screenWidth * 0.45);
-
-        int logoHeight =
-                (int) (logoWidth * 0.28);
-
-        int inputWidth =
-                (int) (screenWidth * 0.34);
-
-        int inputHeight =
-                (int) (inputWidth * 0.22);
-
-        int confirmWidth =
-                (int) (inputWidth * 0.72);
-
-        int confirmHeight =
-                (int) (confirmWidth * 0.22);
-
-        int spacing =
-                (int) (screenHeight * 0.025);
-
-        // =========================
-        // POSIÇÕES
-        // =========================
-
-        int inputX =
-                (screenWidth - inputWidth) / 2;
-
-        int confirmX =
-                (screenWidth - confirmWidth) / 2;
-
-        int logoX =
-                (screenWidth - logoWidth) / 2;
-
-        int logoY =
-                (int) (screenHeight * 0.03);
-
-        int startY =
-                (int) (screenHeight * 0.24);
-
-        // =========================
-        // LOGO
-        // =========================
-
-        g.drawImage(
-                logo,
-                logoX,
-                logoY,
-                logoWidth,
-                logoHeight,
-                null
-        );
-
-        // =========================
-        // INPUT USUÁRIO
-        // =========================
-
-        g.drawImage(
-                usuarioInput,
-                inputX,
-                startY,
-                inputWidth,
-                inputHeight,
-                null
-        );
-
-        g.setFont(
-                new Font(
-                        "Arial",
-                        Font.BOLD,
-                        20
-                )
-        );
-
-        // limita tamanho do texto
-        String displayedUsername = username;
-
-        while (
-                g.getFontMetrics().stringWidth(displayedUsername)
-                        > inputWidth - 180
-        ) {
-
-            displayedUsername =
-                    displayedUsername.substring(1);
+        if (System.currentTimeMillis() - lastBlinkTime > 500) {
+            showCursor = !showCursor;
+            lastBlinkTime = System.currentTimeMillis();
         }
 
-        // posição centralizada
-        int usernameTextX =
-                inputX +
-                        (inputWidth / 2) -
-                        (g.getFontMetrics().stringWidth(displayedUsername) / 2);
+        calcularMedidas();
 
-        int usernameTextY =
-                startY + (inputHeight / 2) + 8;
+        renderBackground(g);
+        renderLogo(g);
+        renderCampoUsuario(g);
+        renderCampoSenha(g);
+        renderEsqueceuSenha(g);
+        renderBotaoConfirmar(g);
+        renderMensagemErro(g);
+        renderCadastrar(g);
+    }
 
-        // borda preta
-        g.setColor(Color.BLACK);
+    private void calcularMedidas() {
+        screenWidth = Game.window().getWidth();
+        screenHeight = Game.window().getHeight();
 
-        g.drawString(
-                displayedUsername,
-                usernameTextX - 1,
-                usernameTextY - 1
-        );
+        inputWidth = (int) (screenWidth * 0.34);
+        inputHeight = (int) (inputWidth * 0.22);
+        inputX = (screenWidth - inputWidth) / 2;
 
-        g.drawString(
-                displayedUsername,
-                usernameTextX + 1,
-                usernameTextY - 1
-        );
+        confirmWidth = (int) (inputWidth * 0.72);
+        confirmHeight = (int) (confirmWidth * 0.22);
+        confirmX = (screenWidth - confirmWidth) / 2;
 
-        g.drawString(
-                displayedUsername,
-                usernameTextX - 1,
-                usernameTextY + 1
-        );
+        int spacing = (int) (screenHeight * 0.025);
 
-        g.drawString(
-                displayedUsername,
-                usernameTextX + 1,
-                usernameTextY + 1
-        );
+        startY = (int) (screenHeight * 0.24);
+        senhaY = startY + inputHeight + spacing;
+        esqueceuY = senhaY + inputHeight + 25;
+        confirmarY = esqueceuY + 20;
+    }
 
-        // texto branco
-        g.setColor(Color.WHITE);
+    private void renderBackground(Graphics2D g) {
+        g.drawImage(background, 0, 0, screenWidth, screenHeight, null);
+    }
 
-        g.drawString(
-                displayedUsername,
-                usernameTextX,
-                usernameTextY
-        );
+    private void renderLogo(Graphics2D g) {
+        int logoWidth = (int) (screenWidth * 0.45);
+        int logoHeight = (int) (logoWidth * 0.28);
+        int logoX = (screenWidth - logoWidth) / 2;
+        int logoY = (int) (screenHeight * 0.03);
 
-        // =========================
-        // INPUT SENHA
-        // =========================
+        g.drawImage(logo, logoX, logoY, logoWidth, logoHeight, null);
+    }
 
-        int senhaY =
-                startY + inputHeight + spacing;
+    private void renderCampoUsuario(Graphics2D g) {
+        g.drawImage(usuarioInput, inputX, startY, inputWidth, inputHeight, null);
 
-        g.drawImage(
-                senhaInput,
-                inputX,
-                senhaY,
-                inputWidth,
-                inputHeight,
-                null
-        );
+        usuarioRect = new Rectangle(inputX, startY, inputWidth, inputHeight);
 
-        // senha escondida
-        String hiddenPassword =
-                "*".repeat(password.length());
+        g.setFont(new Font("Arial", Font.BOLD, 20));
 
-        // limita tamanho
-        String displayedPassword =
-                hiddenPassword;
+        String displayedUsername = limitarTexto(g, username, inputWidth - 180);
 
-        while (
-                g.getFontMetrics().stringWidth(displayedPassword)
-                        > inputWidth - 180
-        ) {
+        int textX = inputX + 190;
+        int textY = startY + (inputHeight / 2) + 8;
 
-            displayedPassword =
-                    displayedPassword.substring(1);
+        drawOutlinedText(g, displayedUsername, textX, textY, Color.WHITE);
+
+        if (typingUsername && showCursor) {
+            int cursorX = textX + g.getFontMetrics().stringWidth(displayedUsername) + 3;
+            drawOutlinedText(g, "|", cursorX, textY, Color.WHITE);
         }
+    }
 
-        // posição centralizada
-        int passwordTextX =
-                inputX +
-                        (inputWidth / 2) -
-                        (g.getFontMetrics().stringWidth(displayedPassword) / 2);
+    private void renderCampoSenha(Graphics2D g) {
+        g.drawImage(senhaInput, inputX, senhaY, inputWidth, inputHeight, null);
 
-        int passwordTextY =
-                senhaY + (inputHeight / 2) + 8;
+        senhaRect = new Rectangle(inputX, senhaY, inputWidth, inputHeight);
 
-        // borda preta
-        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
 
-        g.drawString(
-                displayedPassword,
-                passwordTextX - 1,
-                passwordTextY - 1
+        String hiddenPassword = "*".repeat(password.length());
+        String displayedPassword = limitarTexto(g, hiddenPassword, inputWidth - 180);
+
+        int textX = inputX + 190;
+        int textY = senhaY + (inputHeight / 2) + 8;
+
+        drawOutlinedText(g, displayedPassword, textX, textY, Color.WHITE);
+
+        if (typingPassword && showCursor) {
+            int cursorX = textX + g.getFontMetrics().stringWidth(displayedPassword) + 3;
+            drawOutlinedText(g, "|", cursorX, textY, Color.WHITE);
+        }
+    }
+
+    private void renderEsqueceuSenha(Graphics2D g) {
+        g.setFont(new Font("Arial", Font.PLAIN, 20));
+
+        String texto = "Esqueceu a senha?";
+        FontMetrics metrics = g.getFontMetrics();
+
+        int x = (screenWidth - metrics.stringWidth(texto)) / 2;
+
+        esqueceuSenhaRect = new Rectangle(
+                x,
+                esqueceuY - 20,
+                metrics.stringWidth(texto),
+                30
         );
 
-        g.drawString(
-                displayedPassword,
-                passwordTextX + 1,
-                passwordTextY - 1
-        );
+        drawOutlinedText(g, texto, x, esqueceuY, Color.WHITE);
+    }
 
-        g.drawString(
-                displayedPassword,
-                passwordTextX - 1,
-                passwordTextY + 1
-        );
-
-        g.drawString(
-                displayedPassword,
-                passwordTextX + 1,
-                passwordTextY + 1
-        );
-
-        // texto branco
-        g.setColor(Color.WHITE);
-
-        g.drawString(
-                displayedPassword,
-                passwordTextX,
-                passwordTextY
-        );
-
-        // =========================
-        // ESQUECEU SENHA
-        // =========================
-
-        int esqueceuY =
-                senhaY + inputHeight + 25;
-
-        g.setFont(
-                new Font(
-                        "Arial",
-                        Font.PLAIN,
-                        20
-                )
-        );
-
-        String esqueceuTexto =
-                "Esqueceu a senha?";
-
-        FontMetrics metrics =
-                g.getFontMetrics();
-
-        int esqueceuX =
-                (screenWidth -
-                        metrics.stringWidth(
-                                esqueceuTexto
-                        )) / 2;
-
-        // área clicável
-        esqueceuSenhaRect =
-                new Rectangle(
-                        esqueceuX,
-                        esqueceuY - 20,
-                        metrics.stringWidth(
-                                esqueceuTexto
-                        ),
-                        30
-                );
-
-        // borda preta
-        g.setColor(Color.BLACK);
-
-        g.drawString(
-                esqueceuTexto,
-                esqueceuX - 1,
-                esqueceuY - 1
-        );
-
-        g.drawString(
-                esqueceuTexto,
-                esqueceuX + 1,
-                esqueceuY - 1
-        );
-
-        g.drawString(
-                esqueceuTexto,
-                esqueceuX - 1,
-                esqueceuY + 1
-        );
-
-        g.drawString(
-                esqueceuTexto,
-                esqueceuX + 1,
-                esqueceuY + 1
-        );
-
-        // texto principal
-        g.setColor(Color.WHITE);
-
-        g.drawString(
-                esqueceuTexto,
-                esqueceuX,
-                esqueceuY
-        );
-
-        // =========================
-        // BOTÃO CONFIRMAR
-        // =========================
-
-        int confirmarY =
-                esqueceuY + 20;
-
+    private void renderBotaoConfirmar(Graphics2D g) {
         g.drawImage(
                 confirmarButton,
                 confirmX,
@@ -541,75 +277,82 @@ public class LoginScreen extends Screen {
                 null
         );
 
-        confirmarRect =
-                new Rectangle(
-                        confirmX,
-                        confirmarY,
-                        confirmWidth,
-                        confirmHeight
-                );
+        confirmarRect = new Rectangle(
+                confirmX,
+                confirmarY,
+                confirmWidth,
+                confirmHeight
+        );
+    }
 
-        // =========================
-        // CADASTRAR-SE
-        // =========================
+    private void renderMensagemErro(Graphics2D g) {
+        if (mensagemErro.isEmpty()) {
+            return;
+        }
 
-        int cadastroY =
-                confirmarY + confirmHeight + 45;
+        g.setFont(new Font("Arial", Font.BOLD, 18));
 
-        String cadastroTexto =
-                "Cadastrar-se";
+        FontMetrics metrics = g.getFontMetrics();
 
-        int cadastroX =
-                (screenWidth -
-                        metrics.stringWidth(
-                                cadastroTexto
-                        )) / 2;
+        int x = centralizarTextoX(g, mensagemErro, 0, screenWidth);
+        int y = confirmarY + confirmHeight + 30;
 
-        // área clicável
-        cadastrarRect =
-                new Rectangle(
-                        cadastroX,
-                        cadastroY - 20,
-                        metrics.stringWidth(
-                                cadastroTexto
-                        ),
-                        30
-                );
+        g.setColor(Color.BLACK);
+        g.drawString(mensagemErro, x - 1, y - 1);
+        g.drawString(mensagemErro, x + 1, y - 1);
+        g.drawString(mensagemErro, x - 1, y + 1);
+        g.drawString(mensagemErro, x + 1, y + 1);
 
-        // borda preta
+        g.setColor(Color.RED);
+        g.drawString(mensagemErro, x, y);
+    }
+
+    private void renderCadastrar(Graphics2D g) {
+        g.setFont(new Font("Arial", Font.PLAIN, 20));
+
+        String texto = "Cadastrar-se";
+        FontMetrics metrics = g.getFontMetrics();
+
+        int y = confirmarY + confirmHeight + 65;
+        int x = (screenWidth - metrics.stringWidth(texto)) / 2;
+
+        cadastrarRect = new Rectangle(
+                x,
+                y - 20,
+                metrics.stringWidth(texto),
+                30
+        );
+
+        drawOutlinedText(g, texto, x, y, Color.WHITE);
+    }
+
+    private String limitarTexto(Graphics2D g, String texto, int larguraMaxima) {
+        while (g.getFontMetrics().stringWidth(texto) > larguraMaxima) {
+            texto = texto.substring(1);
+        }
+
+        return texto;
+    }
+
+    private int centralizarTextoX(Graphics2D g, String texto, int x, int width) {
+        return x + (width / 2) - (g.getFontMetrics().stringWidth(texto) / 2);
+    }
+
+    private void drawOutlinedText(
+            Graphics2D g,
+            String text,
+            int x,
+            int y,
+            Color mainColor
+    ) {
         g.setColor(Color.BLACK);
 
-        g.drawString(
-                cadastroTexto,
-                cadastroX - 1,
-                cadastroY - 1
-        );
+        g.drawString(text, x - 1, y - 1);
+        g.drawString(text, x + 1, y - 1);
+        g.drawString(text, x - 1, y + 1);
+        g.drawString(text, x + 1, y + 1);
 
-        g.drawString(
-                cadastroTexto,
-                cadastroX + 1,
-                cadastroY - 1
-        );
-
-        g.drawString(
-                cadastroTexto,
-                cadastroX - 1,
-                cadastroY + 1
-        );
-
-        g.drawString(
-                cadastroTexto,
-                cadastroX + 1,
-                cadastroY + 1
-        );
-
-        // texto principal
-        g.setColor(Color.WHITE);
-
-        g.drawString(
-                cadastroTexto,
-                cadastroX,
-                cadastroY
-        );
+        g.setColor(mainColor);
+        g.drawString(text, x, y);
     }
 }

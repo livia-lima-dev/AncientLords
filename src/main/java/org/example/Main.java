@@ -18,28 +18,13 @@ public class Main {
                         new Dimension(1280, 720)
                 );
 
-
-        Game.screens().add(
-                new LoginScreen()
-        );
-        Game.screens().add(
-                new InicioScreen()
-        );
-        Game.screens().add(
-                new ConfiguracoesScreen()
-        );
-        Game.screens().add(
-                new CadastroScreen()
-        );
-        Game.screens().add(
-                new DerrotaScreen()
-        );
-        Game.screens().add(
-                new VitoriaScreen()
-        );
-        Game.screens().add(
-                new PerfilScreen()
-        );
+        Game.screens().add(new LoginScreen());
+        Game.screens().add(new InicioScreen());
+        Game.screens().add(new ConfiguracoesScreen());
+        Game.screens().add(new CadastroScreen());
+        Game.screens().add(new DerrotaScreen());
+        Game.screens().add(new VitoriaScreen());
+        Game.screens().add(new PerfilScreen());
 
         Game.screens().display("login");
 
