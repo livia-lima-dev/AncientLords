@@ -23,14 +23,6 @@ public class InicioScreen extends Screen {
 
     private BufferedImage logo;
 
-    // =========================
-    // ÁREAS CLICÁVEIS
-    // =========================
-
-    private Rectangle iniciarRect;
-
-    private Rectangle continuarRect;
-
     private Rectangle perfilRect;
 
     private Rectangle configuracoesRect;
@@ -45,10 +37,6 @@ public class InicioScreen extends Screen {
 
         setupMouseInput();
     }
-
-    // =========================
-    // CARREGA AS IMAGENS
-    // =========================
 
     private void loadImages() {
 
@@ -102,76 +90,41 @@ public class InicioScreen extends Screen {
         }
     }
 
-    // =========================
-    // MOUSE
-    // =========================
-
     private void setupMouseInput() {
 
         Input.mouse().onClicked(event -> {
 
             Point mousePosition = event.getPoint();
 
-            // iniciar
-            if (
-                    iniciarRect != null &&
-                            iniciarRect.contains(mousePosition)
-            ) {
-
-                System.out.println(
-                        "CLICOU EM INICIAR"
-                );
-            }
-
-            // continuar
-            if (
-                    continuarRect != null &&
-                            continuarRect.contains(mousePosition)
-            ) {
-
-                System.out.println(
-                        "CLICOU EM CONTINUAR"
-                );
-            }
-
-            // perfil
             if (
                     perfilRect != null &&
                             perfilRect.contains(mousePosition)
             ) {
 
-                System.out.println(
-                        "CLICOU EM PERFIL"
-                );
+                Game.screens().display("perfil");
+
+                return;
             }
 
-            // configurações
             if (
                     configuracoesRect != null &&
                             configuracoesRect.contains(mousePosition)
             ) {
 
-                System.out.println(
-                        "CLICOU EM CONFIGURAÇÕES"
-                );
+                Game.screens().display("configuracoes");
+
+                return;
             }
 
-            // sair
             if (
                     sairRect != null &&
                             sairRect.contains(mousePosition)
             ) {
 
-                System.out.println(
-                        "CLICOU EM SAIR"
-                );
+                Game.exit();
             }
         });
     }
-
-    // =========================
-    // DESENHA NA TELA
-    // =========================
 
     @Override
     public void render(Graphics2D g) {
@@ -182,10 +135,6 @@ public class InicioScreen extends Screen {
 
         int screenHeight = Game.window().getHeight();
 
-        // =========================
-        // FUNDO
-        // =========================
-
         g.drawImage(
                 background,
                 0,
@@ -194,10 +143,6 @@ public class InicioScreen extends Screen {
                 screenHeight,
                 null
         );
-
-        // =========================
-        // LOGO DO JOGO
-        // =========================
 
         int logoWidth = 700;
 
@@ -216,10 +161,6 @@ public class InicioScreen extends Screen {
                 null
         );
 
-        // =========================
-        // CONFIGURAÇÕES DOS BOTÕES
-        // =========================
-
         int buttonWidth = 480;
 
         int buttonHeight = 88;
@@ -228,17 +169,9 @@ public class InicioScreen extends Screen {
 
         int spacing = 12;
 
-        int totalHeight =
-                (buttonHeight * 5)
-                        + (spacing * 4);
-
         int startY =
-                (screenHeight - totalHeight) / 2
+                ((screenHeight - ((buttonHeight * 5) + (spacing * 4))) / 2)
                         + 100;
-
-        // =========================
-        // INICIAR
-        // =========================
 
         g.drawImage(
                 iniciarButton,
@@ -248,18 +181,6 @@ public class InicioScreen extends Screen {
                 buttonHeight,
                 null
         );
-
-        iniciarRect =
-                new Rectangle(
-                        x,
-                        startY,
-                        buttonWidth,
-                        buttonHeight
-                );
-
-        // =========================
-        // CONTINUAR
-        // =========================
 
         int continuarY =
                 startY + (buttonHeight + spacing);
@@ -273,20 +194,8 @@ public class InicioScreen extends Screen {
                 null
         );
 
-        continuarRect =
-                new Rectangle(
-                        x,
-                        continuarY,
-                        buttonWidth,
-                        buttonHeight
-                );
-
-        // =========================
-        // PERFIL
-        // =========================
-
         int perfilY =
-                startY + (buttonHeight + spacing) * 2;
+                startY + ((buttonHeight + spacing) * 2);
 
         g.drawImage(
                 perfilButton,
@@ -297,20 +206,15 @@ public class InicioScreen extends Screen {
                 null
         );
 
-        perfilRect =
-                new Rectangle(
-                        x,
-                        perfilY,
-                        buttonWidth,
-                        buttonHeight
-                );
-
-        // =========================
-        // CONFIGURAÇÕES
-        // =========================
+        perfilRect = new Rectangle(
+                x,
+                perfilY,
+                buttonWidth,
+                buttonHeight
+        );
 
         int configuracoesY =
-                startY + (buttonHeight + spacing) * 3;
+                startY + ((buttonHeight + spacing) * 3);
 
         g.drawImage(
                 configuracoesButton,
@@ -321,20 +225,15 @@ public class InicioScreen extends Screen {
                 null
         );
 
-        configuracoesRect =
-                new Rectangle(
-                        x,
-                        configuracoesY,
-                        buttonWidth,
-                        buttonHeight
-                );
-
-        // =========================
-        // SAIR
-        // =========================
+        configuracoesRect = new Rectangle(
+                x,
+                configuracoesY,
+                buttonWidth,
+                buttonHeight
+        );
 
         int sairY =
-                startY + (buttonHeight + spacing) * 4;
+                startY + ((buttonHeight + spacing) * 4);
 
         g.drawImage(
                 sairButton,
@@ -345,12 +244,11 @@ public class InicioScreen extends Screen {
                 null
         );
 
-        sairRect =
-                new Rectangle(
-                        x,
-                        sairY,
-                        buttonWidth,
-                        buttonHeight
-                );
+        sairRect = new Rectangle(
+                x,
+                sairY,
+                buttonWidth,
+                buttonHeight
+        );
     }
 }
