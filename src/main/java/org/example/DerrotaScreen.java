@@ -24,28 +24,45 @@ public class DerrotaScreen extends Screen {
     private int startY;
 
     public DerrotaScreen() {
+
         super("derrota");
+
         PlayerData.derrotas++;
+
         PlayerData.totalPartidas++;
+
         loadImages();
     }
 
     private void loadImages() {
+
         try {
 
-            background = loadImage("/assets/finalizacao/derrota/fundo_tela_derrota.png");
-            tentarNovamenteButton = loadImage("/assets/finalizacao/derrota/btn_tentenovamente.png");
-            inicioButton = loadImage("/assets/finalizacao/derrota/btn_menu.png");
+            background =
+                    loadImage(
+                            "/assets/finalizacao/derrota/fundo_tela_derrota.png"
+                    );
+
+            tentarNovamenteButton =
+                    loadImage(
+                            "/assets/finalizacao/derrota/btn_tentenovamente.png"
+                    );
+
+            inicioButton =
+                    loadImage(
+                            "/assets/finalizacao/derrota/btn_menu.png"
+                    );
 
         } catch (Exception e) {
 
             System.out.println("ERRO AO CARREGAR IMAGENS");
-            e.printStackTrace();
 
+            e.printStackTrace();
         }
     }
 
     private BufferedImage loadImage(String path) throws Exception {
+
         return ImageIO.read(
                 Objects.requireNonNull(
                         getClass().getResourceAsStream(path)
@@ -55,32 +72,67 @@ public class DerrotaScreen extends Screen {
 
     @Override
     public void render(Graphics2D g) {
+
         super.render(g);
 
         calcularMedidas();
 
         renderBackground(g);
+
         renderBotoes(g);
     }
 
     private void calcularMedidas() {
-        screenWidth = Game.window().getWidth();
-        screenHeight = Game.window().getHeight();
+
+        screenWidth =
+                Game.window().getWidth();
+
+        screenHeight =
+                Game.window().getHeight();
 
         buttonWidth = 360;
+
         buttonHeight = 78;
-        buttonX = (screenWidth - buttonWidth) / 2;
+
+        buttonX =
+                (screenWidth - buttonWidth) / 2;
+
         spacing = 20;
-        startY = screenHeight / 2 + 40;
+
+        startY =
+                screenHeight / 2 + 40;
     }
 
     private void renderBackground(Graphics2D g) {
-        g.drawImage(background, 0, 0, screenWidth, screenHeight, null);
+
+        g.drawImage(
+                background,
+                0,
+                0,
+                screenWidth,
+                screenHeight,
+                null
+        );
     }
 
     private void renderBotoes(Graphics2D g) {
-        g.drawImage(tentarNovamenteButton, buttonX, startY, buttonWidth, buttonHeight, null);
 
-        g.drawImage(inicioButton, buttonX, startY + buttonHeight + spacing, buttonWidth, buttonHeight, null);
+        g.drawImage(
+                tentarNovamenteButton,
+                buttonX,
+                startY,
+                buttonWidth,
+                buttonHeight,
+                null
+        );
+
+        g.drawImage(
+                inicioButton,
+                buttonX,
+                startY + buttonHeight + spacing,
+                buttonWidth,
+                buttonHeight,
+                null
+        );
     }
 }
