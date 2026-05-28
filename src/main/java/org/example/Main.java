@@ -18,13 +18,52 @@ public class Main {
                         new Dimension(1280, 720)
                 );
 
-        Game.screens().add(new LoginScreen());
-        Game.screens().add(new InicioScreen());
-        Game.screens().add(new ConfiguracoesScreen());
-        Game.screens().add(new CadastroScreen());
-        Game.screens().add(new DerrotaScreen());
-        Game.screens().add(new VitoriaScreen());
-        Game.screens().add(new PerfilScreen());
+        // =========================
+        // CRIAR TELAS UMA ÚNICA VEZ
+        // =========================
+
+        LoginScreen loginScreen =
+                new LoginScreen();
+
+        InicioScreen inicioScreen =
+                new InicioScreen();
+
+        ConfiguracoesScreen configuracoesScreen =
+                new ConfiguracoesScreen();
+
+        CadastroScreen cadastroScreen =
+                new CadastroScreen();
+
+        DerrotaScreen derrotaScreen =
+                new DerrotaScreen();
+
+        VitoriaScreen vitoriaScreen =
+                new VitoriaScreen();
+
+        PerfilScreen perfilScreen =
+                new PerfilScreen();
+
+        // =========================
+        // REGISTRAR TELAS
+        // =========================
+
+        Game.screens().add(loginScreen);
+
+        Game.screens().add(inicioScreen);
+
+        Game.screens().add(configuracoesScreen);
+
+        Game.screens().add(cadastroScreen);
+
+        Game.screens().add(derrotaScreen);
+
+        Game.screens().add(vitoriaScreen);
+
+        Game.screens().add(perfilScreen);
+
+        // =========================
+        // PRIMEIRA TELA
+        // =========================
 
         Game.screens().display("login");
 

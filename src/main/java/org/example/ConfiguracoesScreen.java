@@ -17,8 +17,6 @@ public class ConfiguracoesScreen extends Screen {
 
     private BufferedImage background;
 
-    private BufferedImage emailInputImage;
-
     private BufferedImage confirmarButtonImage;
 
     // =========================
@@ -30,12 +28,35 @@ public class ConfiguracoesScreen extends Screen {
     private Font medievalSmallFont;
 
     // =========================
-    // INPUT EMAIL
+    // INPUTS SENHA
     // =========================
 
-    private String emailText = "";
+    private String senhaAtual = "";
 
-    private boolean editingEmail = false;
+    private String novaSenha = "";
+
+    private String confirmarSenha = "";
+
+    // =========================
+    // VALIDAÇÃO SENHA
+    // =========================
+
+    private boolean senhasDiferentes = false;
+
+    private boolean senhaAlteradaComSucesso = false;
+
+    // =========================
+    // CONTROLE INPUT
+    // =========================
+
+    private int campoSelecionado = 0;
+
+    /*
+        0 = nenhum
+        1 = senha atual
+        2 = nova senha
+        3 = confirmar senha
+     */
 
     // =========================
     // DIFICULDADE
@@ -53,7 +74,11 @@ public class ConfiguracoesScreen extends Screen {
 
     private Rectangle dificilRect;
 
-    private Rectangle emailRect;
+    private Rectangle senhaAtualRect;
+
+    private Rectangle novaSenhaRect;
+
+    private Rectangle confirmarSenhaRect;
 
     private Rectangle confirmarRect;
 
@@ -65,7 +90,7 @@ public class ConfiguracoesScreen extends Screen {
 
     private final int rightSectionX = 1030;
 
-    private final int sectionTitleY = 240;
+    private final int sectionTitleY = 200;
 
     public ConfiguracoesScreen() {
 
@@ -89,12 +114,6 @@ public class ConfiguracoesScreen extends Screen {
             background = ImageIO.read(
                     getClass().getResourceAsStream(
                             "/assets/configuracoes/fundo_tela_configuracoes.png"
-                    )
-            );
-
-            emailInputImage = ImageIO.read(
-                    getClass().getResourceAsStream(
-                            "/assets/configuracoes/ct_email.png"
                     )
             );
 
@@ -139,47 +158,132 @@ public class ConfiguracoesScreen extends Screen {
 
         Input.keyboard().onKeyTyped(event -> {
 
-            if (!editingEmail) {
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            if (!Game.screens().current().getName().equals(getName())) {
+                return;
+            }
+
+            if (campoSelecionado == 0) {
                 return;
             }
 
             char c = event.getKeyChar();
 
+            // =========================
+            // IGNORA CARACTERES INVÁLIDOS
+            // =========================
+
             if (
                     c == KeyEvent.CHAR_UNDEFINED
                             || Character.isISOControl(c)
+                            || Character.isWhitespace(c)
             ) {
                 return;
             }
 
             // =========================
-            // LIMITAR TAMANHO TEXTO
+            // EVITA QUADRADINHOS
             // =========================
 
-            if (emailText.length() >= 22) {
+            if (
+                    !Character.isLetterOrDigit(c)
+                            && "@._-!?#$%&*".indexOf(c) == -1
+            ) {
                 return;
             }
 
-            emailText += c;
+            // =========================
+            // CAMPO 1
+            // =========================
+
+            if (campoSelecionado == 1) {
+
+                if (senhaAtual.length() >= 18) {
+                    return;
+                }
+
+                senhaAtual += c;
+            }
+
+            // =========================
+            // CAMPO 2
+            // =========================
+
+            if (campoSelecionado == 2) {
+
+                if (novaSenha.length() >= 18) {
+                    return;
+                }
+
+                novaSenha += c;
+            }
+
+            // =========================
+            // CAMPO 3
+            // =========================
+
+            if (campoSelecionado == 3) {
+
+                if (confirmarSenha.length() >= 18) {
+                    return;
+                }
+
+                confirmarSenha += c;
+            }
         });
+
+        // =========================
+        // BACKSPACE
+        // =========================
 
         Input.keyboard().onKeyReleased(event -> {
 
-            if (!editingEmail) {
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
 
-            // BACKSPACE
-            if (event.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+            if (event.getKeyCode() != KeyEvent.VK_BACK_SPACE) {
+                return;
+            }
 
-                if (emailText.length() > 0) {
+            // senha atual
+            if (
+                    campoSelecionado == 1
+                            && senhaAtual.length() > 0
+            ) {
 
-                    emailText =
-                            emailText.substring(
-                                    0,
-                                    emailText.length() - 1
-                            );
-                }
+                senhaAtual =
+                        senhaAtual.substring(
+                                0,
+                                senhaAtual.length() - 1
+                        );
+            }
+
+            // nova senha
+            if (
+                    campoSelecionado == 2
+                            && novaSenha.length() > 0
+            ) {
+
+                novaSenha =
+                        novaSenha.substring(
+                                0,
+                                novaSenha.length() - 1
+                        );
+            }
+
+            // confirmar senha
+            if (
+                    campoSelecionado == 3
+                            && confirmarSenha.length() > 0
+            ) {
+
+                confirmarSenha =
+                        confirmarSenha.substring(
+                                0,
+                                confirmarSenha.length() - 1
+                        );
             }
         });
     }
@@ -191,6 +295,11 @@ public class ConfiguracoesScreen extends Screen {
     private void setupMouseInput() {
 
         Input.mouse().onClicked(event -> {
+
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            if (!Game.screens().current().getName().equals(getName())) {
+                return;
+            }
 
             Point mousePosition = event.getPoint();
 
@@ -223,19 +332,33 @@ public class ConfiguracoesScreen extends Screen {
             }
 
             // =========================
-            // EMAIL
+            // INPUTS
             // =========================
 
+            campoSelecionado = 0;
+
             if (
-                    emailRect != null
-                            && emailRect.contains(mousePosition)
+                    senhaAtualRect != null
+                            && senhaAtualRect.contains(mousePosition)
             ) {
 
-                editingEmail = true;
+                campoSelecionado = 1;
+            }
 
-            } else {
+            if (
+                    novaSenhaRect != null
+                            && novaSenhaRect.contains(mousePosition)
+            ) {
 
-                editingEmail = false;
+                campoSelecionado = 2;
+            }
+
+            if (
+                    confirmarSenhaRect != null
+                            && confirmarSenhaRect.contains(mousePosition)
+            ) {
+
+                campoSelecionado = 3;
             }
 
             // =========================
@@ -247,10 +370,26 @@ public class ConfiguracoesScreen extends Screen {
                             && confirmarRect.contains(mousePosition)
             ) {
 
-                System.out.println(
-                        "EMAIL ENVIADO PARA: "
-                                + emailText
-                );
+                // =========================
+                // VALIDAR SENHAS
+                // =========================
+
+                if (
+                        !novaSenha.equals(confirmarSenha)
+                ) {
+
+                    senhasDiferentes = true;
+
+                    senhaAlteradaComSucesso = false;
+
+                } else {
+
+                    senhasDiferentes = false;
+
+                    senhaAlteradaComSucesso = true;
+
+                    System.out.println("Senha alterada");
+                }
             }
         });
     }
@@ -266,7 +405,6 @@ public class ConfiguracoesScreen extends Screen {
             int y
     ) {
 
-        // BORDA
         g.setColor(Color.BLACK);
 
         g.drawString(text, x - 1, y - 1);
@@ -277,7 +415,6 @@ public class ConfiguracoesScreen extends Screen {
 
         g.drawString(text, x + 1, y + 1);
 
-        // TEXTO
         g.setColor(Color.WHITE);
 
         g.drawString(text, x, y);
@@ -303,6 +440,133 @@ public class ConfiguracoesScreen extends Screen {
     }
 
     // =========================
+    // DESENHAR INPUT
+    // =========================
+
+    private void drawInputBox(
+            Graphics2D g,
+            Rectangle rect,
+            String titulo,
+            String texto,
+            boolean selecionado
+    ) {
+
+        // título
+        g.setFont(
+                medievalSmallFont.deriveFont(22f)
+        );
+
+        drawOutlinedText(
+                g,
+                titulo,
+                rect.x,
+                rect.y - 15
+        );
+
+        // fundo
+        g.setColor(
+                new Color(
+                        35,
+                        25,
+                        15,
+                        220
+                )
+        );
+
+        g.fillRoundRect(
+                rect.x,
+                rect.y,
+                rect.width,
+                rect.height,
+                18,
+                18
+        );
+
+        // borda
+        if (selecionado) {
+
+            g.setColor(
+                    new Color(
+                            210,
+                            180,
+                            90
+                    )
+            );
+
+        } else {
+
+            g.setColor(
+                    new Color(
+                            130,
+                            100,
+                            50
+                    )
+            );
+        }
+
+        g.setStroke(
+                new BasicStroke(3)
+        );
+
+        g.drawRoundRect(
+                rect.x,
+                rect.y,
+                rect.width,
+                rect.height,
+                18,
+                18
+        );
+
+        // texto
+        g.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        20
+                )
+        );
+
+        FontMetrics metrics =
+                g.getFontMetrics();
+
+        int textX =
+                rect.x + 20;
+
+        int textY =
+                rect.y
+                        + (
+                        (
+                                rect.height
+                                        - metrics.getHeight()
+                        ) / 2
+                )
+                        + metrics.getAscent();
+
+        drawOutlinedText(
+                g,
+                texto,
+                textX,
+                textY
+        );
+
+        // cursor
+        if (selecionado) {
+
+            int cursorX =
+                    textX
+                            + metrics.stringWidth(texto)
+                            + 2;
+
+            drawOutlinedText(
+                    g,
+                    "|",
+                    cursorX,
+                    textY
+            );
+        }
+    }
+
+    // =========================
     // RENDER
     // =========================
 
@@ -317,10 +581,7 @@ public class ConfiguracoesScreen extends Screen {
         int screenHeight =
                 Game.window().getHeight();
 
-        // =========================
-        // FUNDO
-        // =========================
-
+        // fundo
         g.drawImage(
                 background,
                 0,
@@ -331,7 +592,7 @@ public class ConfiguracoesScreen extends Screen {
         );
 
         // =====================================================
-        // ÁREA ESQUERDA - DIFICULDADE
+        // DIFICULDADE
         // =====================================================
 
         g.setFont(
@@ -352,19 +613,15 @@ public class ConfiguracoesScreen extends Screen {
                 sectionTitleY
         );
 
-        // =========================
-        // OPÇÕES
-        // =========================
-
         g.setFont(
                 medievalSmallFont.deriveFont(28f)
         );
 
-        int optionStartY = 300;
+        int optionStartY = 320;
 
         int optionSpacing = 95;
 
-        // Fácil
+        // fácil
         String facilTexto =
                 dificuldadeSelecionada.equals("Fácil")
                         ? "> FÁCIL <"
@@ -389,7 +646,7 @@ public class ConfiguracoesScreen extends Screen {
                         60
                 );
 
-        // Médio
+        // médio
         String medioTexto =
                 dificuldadeSelecionada.equals("Médio")
                         ? "> MÉDIO <"
@@ -414,7 +671,7 @@ public class ConfiguracoesScreen extends Screen {
                         60
                 );
 
-        // Difícil
+        // difícil
         String dificilTexto =
                 dificuldadeSelecionada.equals("Difícil")
                         ? "> DIFÍCIL <"
@@ -440,7 +697,7 @@ public class ConfiguracoesScreen extends Screen {
                 );
 
         // =====================================================
-        // ÁREA DIREITA - REDEFINIR SENHA
+        // REDEFINIR SENHA
         // =====================================================
 
         g.setFont(
@@ -462,88 +719,145 @@ public class ConfiguracoesScreen extends Screen {
         );
 
         // =========================
-        // INPUT EMAIL
+        // INPUTS
         // =========================
 
-        int emailWidth = 650;
+        int inputWidth = 520;
 
-        int emailHeight = 130;
+        int inputHeight = 60;
 
-        int emailX =
-                rightSectionX - (emailWidth / 2);
+        int inputX =
+                rightSectionX - (inputWidth / 2);
 
-        int emailY = 260;
+        int firstInputY = 270;
 
-        g.drawImage(
-                emailInputImage,
-                emailX,
-                emailY,
-                emailWidth,
-                emailHeight,
-                null
-        );
+        int inputSpacing = 110;
 
-        emailRect =
+        senhaAtualRect =
                 new Rectangle(
-                        emailX,
-                        emailY,
-                        emailWidth,
-                        emailHeight
+                        inputX,
+                        firstInputY,
+                        inputWidth,
+                        inputHeight
                 );
 
-        // =========================
-        // TEXTO EMAIL CENTRALIZADO
-        // =========================
-
-        g.setFont(
-                medievalSmallFont.deriveFont(20f)
-        );
-
-        FontMetrics emailMetrics =
-                g.getFontMetrics();
-
-        // centraliza horizontalmente
-        int textX =
-                emailX
-                        + (emailWidth / 2)
-                        - (
-                        emailMetrics.stringWidth(emailText) / 2
+        novaSenhaRect =
+                new Rectangle(
+                        inputX,
+                        firstInputY + inputSpacing,
+                        inputWidth,
+                        inputHeight
                 );
 
-        // centraliza verticalmente
-        int textY =
-                emailY
-                        + (
-                        (
-                                emailHeight
-                                        - emailMetrics.getHeight()
-                        ) / 2
-                )
-                        + emailMetrics.getAscent();
+        confirmarSenhaRect =
+                new Rectangle(
+                        inputX,
+                        firstInputY + (inputSpacing * 2),
+                        inputWidth,
+                        inputHeight
+                );
 
-        drawOutlinedText(
+        drawInputBox(
                 g,
-                emailText,
-                textX,
-                textY
+                senhaAtualRect,
+                "Senha atual",
+                senhaAtual,
+                campoSelecionado == 1
+        );
+
+        drawInputBox(
+                g,
+                novaSenhaRect,
+                "Nova senha",
+                novaSenha,
+                campoSelecionado == 2
+        );
+
+        drawInputBox(
+                g,
+                confirmarSenhaRect,
+                "Confirmar nova senha",
+                confirmarSenha,
+                campoSelecionado == 3
         );
 
         // =========================
-        // CURSOR
+        // AVISO SENHAS DIFERENTES
         // =========================
 
-        if (editingEmail) {
+        if (senhasDiferentes) {
 
-            int cursorX =
-                    textX
-                            + emailMetrics.stringWidth(emailText)
-                            + 2;
+            g.setFont(
+                    new Font(
+                            "Arial",
+                            Font.BOLD,
+                            18
+                    )
+            );
 
-            drawOutlinedText(
-                    g,
-                    "|",
-                    cursorX,
-                    textY
+            g.setColor(
+                    new Color(
+                            220,
+                            60,
+                            60
+                    )
+            );
+
+            String aviso =
+                    "As senhas informadas não coincidem.";
+
+            int avisoX =
+                    confirmarSenhaRect.x;
+
+            int avisoY =
+                    confirmarSenhaRect.y
+                            + confirmarSenhaRect.height
+                            + 45;
+
+            g.drawString(
+                    aviso,
+                    avisoX,
+                    avisoY
+            );
+        }
+
+        // =========================
+        // AVISO SUCESSO
+        // =========================
+
+        if (senhaAlteradaComSucesso) {
+
+            g.setFont(
+                    new Font(
+                            "Arial",
+                            Font.BOLD,
+                            18
+                    )
+            );
+
+            g.setColor(
+                    new Color(
+                            80,
+                            220,
+                            120
+                    )
+            );
+
+            String avisoSucesso =
+                    "Senha alterada com sucesso.";
+
+            int avisoX =
+                    confirmarSenhaRect.x;
+
+            int avisoY =
+                    confirmarSenhaRect.y
+                            + confirmarSenhaRect.height
+                            + 45;
+
+            g.drawString(
+                    avisoSucesso,
+                    avisoX,
+                    avisoY
             );
         }
 
@@ -553,12 +867,12 @@ public class ConfiguracoesScreen extends Screen {
 
         int confirmarWidth = 240;
 
-        int confirmarHeight = 90;
+        int confirmarHeight = 80;
 
         int confirmarX =
                 rightSectionX - (confirmarWidth / 2);
 
-        int confirmarY = 390;
+        int confirmarY = 620;
 
         g.drawImage(
                 confirmarButtonImage,
