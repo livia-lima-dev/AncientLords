@@ -19,6 +19,8 @@ public class InicioScreen extends Screen {
     private BufferedImage sairButton;
     private BufferedImage logo;
 
+    private Rectangle iniciarRect;
+    private Rectangle continuarRect;
     private Rectangle perfilRect;
     private Rectangle configuracoesRect;
     private Rectangle sairRect;
@@ -83,6 +85,19 @@ public class InicioScreen extends Screen {
 
     private void setupMouseInput() {
 
+        Input.mouse().onMoved(event -> {
+
+            // ========================================
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            // ========================================
+
+            if (!Game.screens().current().getName().equals(getName())) {
+                return;
+            }
+
+            updateCursor(event.getPoint());
+        });
+
         Input.mouse().onClicked(event -> {
 
             // ========================================
@@ -135,6 +150,53 @@ public class InicioScreen extends Screen {
                 Game.exit();
             }
         });
+    }
+
+    // ========================================
+    // CURSOR
+    // ========================================
+
+    private void updateCursor(Point mousePosition) {
+
+        if (
+                (
+                        iniciarRect != null
+                                && iniciarRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                continuarRect != null
+                                        && continuarRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                perfilRect != null
+                                        && perfilRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                configuracoesRect != null
+                                        && configuracoesRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                sairRect != null
+                                        && sairRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.HAND_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        Game.window().getRenderComponent().setCursor(
+                Cursor.getDefaultCursor()
+        );
     }
 
     @Override
@@ -234,6 +296,14 @@ public class InicioScreen extends Screen {
                 null
         );
 
+        iniciarRect =
+                new Rectangle(
+                        buttonX,
+                        iniciarY,
+                        buttonWidth,
+                        buttonHeight
+                );
+
         g.drawImage(
                 continuarButton,
                 buttonX,
@@ -243,28 +313,18 @@ public class InicioScreen extends Screen {
                 null
         );
 
+        continuarRect =
+                new Rectangle(
+                        buttonX,
+                        continuarY,
+                        buttonWidth,
+                        buttonHeight
+                );
+
         g.drawImage(
                 perfilButton,
                 buttonX,
                 perfilY,
-                buttonWidth,
-                buttonHeight,
-                null
-        );
-
-        g.drawImage(
-                configuracoesButton,
-                buttonX,
-                configuracoesY,
-                buttonWidth,
-                buttonHeight,
-                null
-        );
-
-        g.drawImage(
-                sairButton,
-                buttonX,
-                sairY,
                 buttonWidth,
                 buttonHeight,
                 null
@@ -278,6 +338,15 @@ public class InicioScreen extends Screen {
                         buttonHeight
                 );
 
+        g.drawImage(
+                configuracoesButton,
+                buttonX,
+                configuracoesY,
+                buttonWidth,
+                buttonHeight,
+                null
+        );
+
         configuracoesRect =
                 new Rectangle(
                         buttonX,
@@ -285,6 +354,15 @@ public class InicioScreen extends Screen {
                         buttonWidth,
                         buttonHeight
                 );
+
+        g.drawImage(
+                sairButton,
+                buttonX,
+                sairY,
+                buttonWidth,
+                buttonHeight,
+                null
+        );
 
         sairRect =
                 new Rectangle(

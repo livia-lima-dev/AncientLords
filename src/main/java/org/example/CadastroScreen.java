@@ -241,6 +241,19 @@ public class CadastroScreen extends Screen {
 
     private void setupMouseInput() {
 
+        Input.mouse().onMoved(event -> {
+
+            // ========================================
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            // ========================================
+
+            if (!Game.screens().current().getName().equals(getName())) {
+                return;
+            }
+
+            updateCursor(event.getPoint());
+        });
+
         Input.mouse().onClicked(event -> {
 
             // ========================================
@@ -313,6 +326,72 @@ public class CadastroScreen extends Screen {
                 validarCadastro();
             }
         });
+    }
+
+    private void updateCursor(Point mousePosition) {
+
+        // ========================================
+        // INPUTS → CURSOR DE TEXTO
+        // ========================================
+
+        if (
+                (
+                        usernameRect != null
+                                && usernameRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                emailRect != null
+                                        && emailRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                passwordRect != null
+                                        && passwordRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.TEXT_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        // ========================================
+        // BOTÕES → MÃOZINHA
+        // ========================================
+
+        if (
+                (
+                        confirmarRect != null
+                                && confirmarRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                voltarRect != null
+                                        && voltarRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.HAND_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        // ========================================
+        // CURSOR NORMAL
+        // ========================================
+
+        Game.window().getRenderComponent().setCursor(
+                Cursor.getDefaultCursor()
+        );
     }
 
     private void validarCadastro() {

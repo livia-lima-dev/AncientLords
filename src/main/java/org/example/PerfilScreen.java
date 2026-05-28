@@ -165,6 +165,19 @@ public class PerfilScreen extends Screen {
 
     private void setupMouseInput() {
 
+        Input.mouse().onMoved(event -> {
+
+            // ========================================
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            // ========================================
+
+            if (!Game.screens().current().getName().equals(getName())) {
+                return;
+            }
+
+            updateCursor(event.getPoint());
+        });
+
         Input.mouse().onClicked(event -> {
 
             // ========================================
@@ -223,6 +236,64 @@ public class PerfilScreen extends Screen {
                 salvarNome();
             }
         });
+    }
+
+    // ========================================
+    // CURSOR
+    // ========================================
+
+    private void updateCursor(Point mousePosition) {
+
+        // ========================================
+        // INPUT → CURSOR DE TEXTO
+        // ========================================
+
+        if (
+                usernameRect != null
+                        && usernameRect.contains(mousePosition)
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.TEXT_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        // ========================================
+        // BOTÕES → MÃOZINHA
+        // ========================================
+
+        if (
+                (
+                        salvarRect != null
+                                && salvarRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                voltarRect != null
+                                        && voltarRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.HAND_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        // ========================================
+        // CURSOR NORMAL
+        // ========================================
+
+        Game.window().getRenderComponent().setCursor(
+                Cursor.getDefaultCursor()
+        );
     }
 
     private void salvarNome() {
