@@ -12,672 +12,452 @@ import java.awt.image.BufferedImage;
 
 public class MenuScreen extends Screen {
 
-    // =====================================================
-    // IMAGENS
-    // =====================================================
-
     private BufferedImage background;
-
     private BufferedImage painelAudio;
-
-    private BufferedImage btnContinuar;
-
     private BufferedImage btnSair;
-
     private BufferedImage sliderBarra;
-
     private BufferedImage sliderPreenchido;
-
     private BufferedImage sliderKnob;
-
     private BufferedImage iconSomOn;
-
     private BufferedImage iconSomOff;
 
-    // =====================================================
-    // FONTES
-    // =====================================================
+    private Font labelFont;
+    private Font percentFont;
+    private Font voltarFont;
 
-    private Font titleFont;
-
-    private Font textFont;
-
-    // =====================================================
-    // BOTÕES
-    // =====================================================
-
-    private Rectangle continuarBounds;
-
+    private Rectangle voltarBounds;
     private Rectangle sairBounds;
 
-    // =====================================================
-    // SLIDERS
-    // =====================================================
-
     private Rectangle musicaSliderBounds;
-
     private Rectangle efeitosSliderBounds;
 
-    // =====================================================
-    // ÍCONES SOM
-    // =====================================================
+    private Rectangle musicaTrackBounds;
+    private Rectangle efeitosTrackBounds;
 
     private Rectangle musicaMuteBounds;
-
     private Rectangle efeitosMuteBounds;
 
-    // =====================================================
-    // ESTADOS
-    // =====================================================
-
     private boolean mouseSobreElemento = false;
-
     private boolean arrastandoMusica = false;
-
     private boolean arrastandoEfeitos = false;
-
     private boolean musicaMutada = false;
-
     private boolean efeitosMutados = false;
 
-    // =====================================================
-    // VOLUMES
-    // =====================================================
-
     private int volumeMusica = 80;
-
     private int volumeEfeitos = 80;
 
-    public MenuScreen() {
+    private static final int PAINEL_W = 720;
+    private static final int PAINEL_H = 360;
 
+    private static final int SLIDER_W = 300;
+    private static final int SLIDER_H = 200;
+
+    private static final int TRACK_OFFSET_X = 34;
+    private static final int TRACK_OFFSET_Y = 90;
+    private static final int TRACK_W = 232;
+    private static final int TRACK_H = 38;
+
+    private static final int KNOB_W = 60;
+    private static final int KNOB_H = 40;
+
+    private static final int ICON_W = 64;
+    private static final int ICON_H = 44;
+
+    private static final int BOTAO_SAIR_W = 360;
+    private static final int BOTAO_SAIR_H = 110;
+
+    public MenuScreen() {
         super("menu");
 
-        // =====================================================
-        // CARREGAR IMAGENS
-        // =====================================================
+        loadImages();
+        loadFonts();
+        setupInput();
+    }
 
-        this.background =
-                Resources.images().get("assets/menu/fundo_tela_menu.png");
+    private void loadImages() {
+        background = Resources.images().get("assets/menu/fundo_tela_menu.png");
+        painelAudio = Resources.images().get("assets/menu/painel_audio.png");
+        btnSair = Resources.images().get("assets/menu/btn_sair.png");
+        sliderBarra = Resources.images().get("assets/menu/slider_barra.png");
+        sliderPreenchido = Resources.images().get("assets/menu/slider_preenchido.png");
+        sliderKnob = Resources.images().get("assets/menu/slider_knob.png");
+        iconSomOn = Resources.images().get("assets/menu/icon_som_on.png");
+        iconSomOff = Resources.images().get("assets/menu/icon_som_off.png");
+    }
 
-        this.painelAudio =
-                Resources.images().get("assets/menu/painel_audio.png");
-
-        this.btnContinuar =
-                Resources.images().get("assets/menu/btn_continuar.png");
-
-        this.btnSair =
-                Resources.images().get("assets/menu/btn_sair.png");
-
-        this.sliderBarra =
-                Resources.images().get("assets/menu/slider_barra.png");
-
-        this.sliderPreenchido =
-                Resources.images().get("assets/menu/slider_preenchido.png");
-
-        this.sliderKnob =
-                Resources.images().get("assets/menu/slider_knob.png");
-
-        this.iconSomOn =
-                Resources.images().get("assets/menu/icon_som_on.png");
-
-        this.iconSomOff =
-                Resources.images().get("assets/menu/icon_som_off.png");
-
-        // =====================================================
-        // FONTES
-        // =====================================================
-
+    private void loadFonts() {
         try {
-
-            this.titleFont = Font.createFont(
+            Font cinzelBold = Font.createFont(
                     Font.TRUETYPE_FONT,
-                    getClass().getResourceAsStream("/assets/fontes/Pixel.ttf")
-            ).deriveFont(Font.PLAIN, 72f);
+                    getClass().getResourceAsStream("/assets/fontes/Cinzel-Bold.ttf")
+            );
+
+            labelFont = cinzelBold.deriveFont(Font.BOLD, 18f);
+            percentFont = cinzelBold.deriveFont(Font.BOLD, 17f);
+            voltarFont = cinzelBold.deriveFont(Font.BOLD, 18f);
 
         } catch (Exception e) {
-
-            this.titleFont = new Font(
-                    "Arial",
-                    Font.BOLD,
-                    72
-            );
+            labelFont = new Font("Arial", Font.BOLD, 18);
+            percentFont = new Font("Arial", Font.BOLD, 17);
+            voltarFont = new Font("Arial", Font.BOLD, 18);
         }
+    }
 
-        this.textFont = new Font(
-                "Arial",
-                Font.BOLD,
-                24
-        );
+    private int getPainelX() {
+        int larguraTela = Game.window().getResolution().width;
+        return larguraTela / 2 - PAINEL_W / 2;
+    }
 
-        // =====================================================
-        // TAMANHO DA TELA
-        // =====================================================
+    private int getPainelY() {
+        return 125;
+    }
 
-        int larguraTela =
-                Game.window().getResolution().width;
+    private void atualizarBounds() {
+        int larguraTela = Game.window().getResolution().width;
+        int centroX = larguraTela / 2;
 
-        // =====================================================
-        // BOTÃO CONTINUAR
-        // =====================================================
+        int painelX = getPainelX();
+        int painelY = getPainelY();
 
-        int continuarX =
-                (larguraTela / 2)
-                        - (btnContinuar.getWidth() / 2);
-
-        int continuarY = 600;
-
-        continuarBounds = new Rectangle(
-                continuarX,
-                continuarY,
-                btnContinuar.getWidth(),
-                btnContinuar.getHeight()
-        );
-
-        // =====================================================
-        // BOTÃO SAIR
-        // =====================================================
-
-        int sairX =
-                (larguraTela / 2)
-                        - (btnSair.getWidth() / 2);
-
-        int sairY = 720;
-
-        sairBounds = new Rectangle(
-                sairX,
-                sairY,
-                btnSair.getWidth(),
-                btnSair.getHeight()
-        );
-
-        // =====================================================
-        // SLIDER MÚSICA
-        // =====================================================
+        int sliderX = painelX + 145;
 
         musicaSliderBounds = new Rectangle(
-                490,
-                285,
-                300,
-                200
+                sliderX,
+                painelY + 12,
+                SLIDER_W,
+                SLIDER_H
         );
-
-        // =====================================================
-        // SLIDER EFEITOS
-        // =====================================================
 
         efeitosSliderBounds = new Rectangle(
-                490,
-                425,
-                300,
-                200
+                sliderX,
+                painelY + 130,
+                SLIDER_W,
+                SLIDER_H
         );
 
-        // =====================================================
-        // ÍCONES MUTE
-        // =====================================================
+        musicaTrackBounds = new Rectangle(
+                musicaSliderBounds.x + TRACK_OFFSET_X,
+                musicaSliderBounds.y + TRACK_OFFSET_Y,
+                TRACK_W,
+                TRACK_H
+        );
+
+        efeitosTrackBounds = new Rectangle(
+                efeitosSliderBounds.x + TRACK_OFFSET_X,
+                efeitosSliderBounds.y + TRACK_OFFSET_Y,
+                TRACK_W,
+                TRACK_H
+        );
+
+        int iconX = musicaTrackBounds.x + musicaTrackBounds.width + 20;
 
         musicaMuteBounds = new Rectangle(
-                820,
-                300,
-                60,
-                40
+                iconX,
+                musicaTrackBounds.y + (musicaTrackBounds.height / 2) - (ICON_H / 2),
+                ICON_W,
+                ICON_H
         );
 
         efeitosMuteBounds = new Rectangle(
-                820,
-                440,
-                60,
-                40
+                iconX,
+                efeitosTrackBounds.y + (efeitosTrackBounds.height / 2) - (ICON_H / 2),
+                ICON_W,
+                ICON_H
         );
 
-        // =====================================================
-        // CLICK MOUSE
-        // =====================================================
+        int voltarX = 65;
+        int voltarY = 55;
 
+        voltarBounds = new Rectangle(
+                voltarX - 10,
+                voltarY - 26,
+                120,
+                34
+        );
+
+        int botaoX = centroX - BOTAO_SAIR_W / 2;
+
+        sairBounds = new Rectangle(
+                botaoX,
+                painelY + PAINEL_H + 45,
+                BOTAO_SAIR_W,
+                BOTAO_SAIR_H
+        );
+    }
+
+    private void setupInput() {
         Input.mouse().onPressed(mouseEvent -> {
+            atualizarBounds();
 
-            Point mouse =
-                    mouseEvent.getPoint();
+            Point mouse = mouseEvent.getPoint();
 
-            // =====================================================
-            // CONTINUAR
-            // =====================================================
-
-            if (continuarBounds.contains(mouse)) {
-
-                System.out.println("Continuar");
-
-                // FUTURAMENTE:
-                // fechar menu e voltar ao jogo
+            if (voltarBounds.contains(mouse)) {
+                voltarAoJogo();
             }
 
-            // =====================================================
-            // SAIR
-            // =====================================================
-
             if (sairBounds.contains(mouse)) {
-
                 Game.exit();
             }
 
-            // =====================================================
-            // MUTE MÚSICA
-            // =====================================================
-
             if (musicaMuteBounds.contains(mouse)) {
-
                 musicaMutada = !musicaMutada;
             }
 
-            // =====================================================
-            // MUTE EFEITOS
-            // =====================================================
-
             if (efeitosMuteBounds.contains(mouse)) {
-
                 efeitosMutados = !efeitosMutados;
             }
 
-            // =====================================================
-            // SLIDER MÚSICA
-            // =====================================================
-
-            if (musicaSliderBounds.contains(mouse)) {
-
+            if (musicaTrackBounds.contains(mouse)) {
                 arrastandoMusica = true;
-
                 atualizarVolumeMusica(mouse.x);
             }
 
-            // =====================================================
-            // SLIDER EFEITOS
-            // =====================================================
-
-            if (efeitosSliderBounds.contains(mouse)) {
-
+            if (efeitosTrackBounds.contains(mouse)) {
                 arrastandoEfeitos = true;
-
                 atualizarVolumeEfeitos(mouse.x);
             }
         });
 
-        // =====================================================
-        // SOLTAR MOUSE
-        // =====================================================
-
         Input.mouse().onReleased(mouseEvent -> {
-
             arrastandoMusica = false;
-
             arrastandoEfeitos = false;
         });
 
-        // =====================================================
-        // ARRASTAR MOUSE
-        // =====================================================
-
         Input.mouse().onMoved(mouseEvent -> {
-
-            Point mouse =
-                    mouseEvent.getPoint();
+            Point mouse = mouseEvent.getPoint();
 
             if (arrastandoMusica) {
-
                 atualizarVolumeMusica(mouse.x);
             }
 
             if (arrastandoEfeitos) {
-
                 atualizarVolumeEfeitos(mouse.x);
             }
         });
 
-        // =====================================================
-        // ESC
-        // =====================================================
-
         Input.keyboard().onKeyTyped(
                 KeyEvent.VK_ESCAPE,
-                event -> {
-
-                    System.out.println("Fechar menu");
-
-                    // FUTURAMENTE:
-                    // fechar apenas o menu
-                }
+                event -> voltarAoJogo()
         );
     }
 
-    // =====================================================
-    // VOLUME MÚSICA
-    // =====================================================
-
-    private void atualizarVolumeMusica(int mouseX) {
-
-        int relativeX =
-                mouseX - musicaSliderBounds.x;
-
-        volumeMusica =
-                (int) ((relativeX / 300.0) * 100);
-
-        volumeMusica =
-                Math.max(0,
-                        Math.min(100, volumeMusica));
+    private void voltarAoJogo() {
+        System.out.println("Voltar ao jogo");
     }
 
-    // =====================================================
-    // VOLUME EFEITOS
-    // =====================================================
+    private void atualizarArraste() {
+        Point mouse = new Point(
+                (int) Input.mouse().getLocation().getX(),
+                (int) Input.mouse().getLocation().getY()
+        );
+
+        if (arrastandoMusica) {
+            atualizarVolumeMusica(mouse.x);
+        }
+
+        if (arrastandoEfeitos) {
+            atualizarVolumeEfeitos(mouse.x);
+        }
+    }
+
+    private void atualizarVolumeMusica(int mouseX) {
+        int relativeX = mouseX - musicaTrackBounds.x;
+
+        volumeMusica = (int) ((relativeX / (double) musicaTrackBounds.width) * 100);
+        volumeMusica = Math.max(0, Math.min(100, volumeMusica));
+    }
 
     private void atualizarVolumeEfeitos(int mouseX) {
+        int relativeX = mouseX - efeitosTrackBounds.x;
 
-        int relativeX =
-                mouseX - efeitosSliderBounds.x;
-
-        volumeEfeitos =
-                (int) ((relativeX / 300.0) * 100);
-
-        volumeEfeitos =
-                Math.max(0,
-                        Math.min(100, volumeEfeitos));
+        volumeEfeitos = (int) ((relativeX / (double) efeitosTrackBounds.width) * 100);
+        volumeEfeitos = Math.max(0, Math.min(100, volumeEfeitos));
     }
 
     @Override
     public void render(Graphics2D g) {
-
         super.render(g);
 
-        // =====================================================
-        // BACKGROUND
-        // =====================================================
+        atualizarBounds();
+        atualizarArraste();
 
-        ImageRenderer.render(
-                g,
-                background,
-                0,
-                0
-        );
+        int larguraTela = Game.window().getResolution().width;
+        int alturaTela = Game.window().getResolution().height;
 
-        // =====================================================
-        // OVERLAY ESCURO
-        // =====================================================
+        ImageRenderer.render(g, background, 0, 0);
 
-        g.setColor(
-                new Color(0, 0, 0, 140)
-        );
+        g.setColor(new Color(0, 0, 0, 125));
+        g.fillRect(0, 0, larguraTela, alturaTela);
 
-        g.fillRect(
-                0,
-                0,
-                Game.window().getResolution().width,
-                Game.window().getResolution().height
-        );
-
-        // =====================================================
-        // PAINEL
-        // =====================================================
-
-        ImageRenderer.render(
-                g,
-                painelAudio,
-                390,
-                210
-        );
-
-        // =====================================================
-        // TÍTULO
-        // =====================================================
-
-        g.setFont(titleFont);
-
-        g.setColor(Color.WHITE);
-
-        String titulo = "MENU";
-
-        FontMetrics metrics =
-                g.getFontMetrics(titleFont);
-
-        int tituloX =
-                (Game.window().getResolution().width / 2)
-                        - (metrics.stringWidth(titulo) / 2);
-
-        g.drawString(
-                titulo,
-                tituloX,
-                120
-        );
-
-        // =====================================================
-        // FONTES
-        // =====================================================
-
-        g.setFont(textFont);
-
-        // =====================================================
-        // TEXTO MÚSICA
-        // =====================================================
-
-        g.drawString(
-                "Musica",
-                505,
-                285
-        );
-
-        // =====================================================
-        // TEXTO EFEITOS
-        // =====================================================
-
-        g.drawString(
-                "Efeitos Sonoros",
-                505,
-                425
-        );
-
-        // =====================================================
-        // SLIDER MÚSICA
-        // =====================================================
-
-        desenharSlider(
-                g,
-                musicaSliderBounds,
-                volumeMusica
-        );
-
-        // =====================================================
-        // SLIDER EFEITOS
-        // =====================================================
-
-        desenharSlider(
-                g,
-                efeitosSliderBounds,
-                volumeEfeitos
-        );
-
-        // =====================================================
-        // ÍCONE MÚSICA
-        // =====================================================
-
-        ImageRenderer.render(
-                g,
-                musicaMutada
-                        ? iconSomOff
-                        : iconSomOn,
-                musicaMuteBounds.x,
-                musicaMuteBounds.y
-        );
-
-        // =====================================================
-        // ÍCONE EFEITOS
-        // =====================================================
-
-        ImageRenderer.render(
-                g,
-                efeitosMutados
-                        ? iconSomOff
-                        : iconSomOn,
-                efeitosMuteBounds.x,
-                efeitosMuteBounds.y
-        );
-
-        // =====================================================
-        // PORCENTAGENS
-        // =====================================================
-
-        g.drawString(
-                volumeMusica + "%",
-                930,
-                340
-        );
-
-        g.drawString(
-                volumeEfeitos + "%",
-                930,
-                480
-        );
-
-        // =====================================================
-        // BOTÃO CONTINUAR
-        // =====================================================
-
-        desenharBotaoHover(
-                g,
-                btnContinuar,
-                continuarBounds
-        );
-
-        // =====================================================
-        // BOTÃO SAIR
-        // =====================================================
-
-        desenharBotaoHover(
-                g,
-                btnSair,
-                sairBounds
-        );
-
-        // =====================================================
-        // CURSOR
-        // =====================================================
-
-        Point mousePosition = new Point(
-                (int) Input.mouse().getLocation().getX(),
-                (int) Input.mouse().getLocation().getY()
-        );
-
-        boolean sobreElemento =
-                continuarBounds.contains(mousePosition)
-                        || sairBounds.contains(mousePosition)
-                        || musicaSliderBounds.contains(mousePosition)
-                        || efeitosSliderBounds.contains(mousePosition)
-                        || musicaMuteBounds.contains(mousePosition)
-                        || efeitosMuteBounds.contains(mousePosition);
-
-        if (sobreElemento && !mouseSobreElemento) {
-
-            Game.window().getHostControl().setCursor(
-                    Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-            );
-
-            mouseSobreElemento = true;
-
-        } else if (!sobreElemento && mouseSobreElemento) {
-
-            Game.window().getHostControl().setCursor(
-                    Cursor.getDefaultCursor()
-            );
-
-            mouseSobreElemento = false;
-        }
+        renderBotaoVoltar(g);
+        renderPainel(g);
+        renderBotoes(g);
+        atualizarCursor();
     }
 
-    // =====================================================
-    // DESENHAR SLIDER
-    // =====================================================
+    private void renderBotaoVoltar(Graphics2D g) {
+        g.setFont(voltarFont);
 
-    private void desenharSlider(
-            Graphics2D g,
-            Rectangle bounds,
-            int volume
-    ) {
+        String texto = "‹ VOLTAR";
 
-        // =====================================================
-        // BARRA VAZIA
-        // =====================================================
+        FontMetrics metrics = g.getFontMetrics();
 
-        ImageRenderer.render(
-                g,
-                sliderBarra,
-                bounds.x,
-                bounds.y
+        int x = 65;
+        int y = 55;
+
+        g.setColor(new Color(0, 0, 0, 140));
+        g.drawString(texto, x + 2, y + 2);
+
+        g.setColor(new Color(95, 55, 20));
+        g.drawString(texto, x + 1, y + 1);
+
+        g.setColor(Color.WHITE);
+        g.drawString(texto, x, y);
+
+        voltarBounds = new Rectangle(
+                x - 10,
+                y - 26,
+                metrics.stringWidth(texto) + 20,
+                34
         );
+    }
 
-        // =====================================================
-        // PARTE PREENCHIDA
-        // =====================================================
-
-        int filledWidth =
-                (int) ((volume / 100.0)
-                        * bounds.width);
+    private void renderPainel(Graphics2D g) {
+        int painelX = getPainelX();
+        int painelY = getPainelY();
 
         g.drawImage(
-                sliderPreenchido,
-
-                bounds.x,
-                bounds.y,
-
-                bounds.x + filledWidth,
-                bounds.y + bounds.height,
-
-                0,
-                0,
-
-                filledWidth,
-                bounds.height,
-
+                painelAudio,
+                painelX,
+                painelY,
+                PAINEL_W,
+                PAINEL_H,
                 null
         );
 
-        // =====================================================
-        // KNOB
-        // =====================================================
+        desenharTextoCentralizado(
+                g,
+                "MUSICA",
+                musicaSliderBounds.x,
+                musicaSliderBounds.y + 70,
+                SLIDER_W
+        );
 
-        int knobX =
-                bounds.x
-                        + filledWidth
-                        - (sliderKnob.getWidth() / 2);
+        desenharTextoCentralizado(
+                g,
+                "EFEITOS SONOROS",
+                efeitosSliderBounds.x,
+                efeitosSliderBounds.y + 70,
+                SLIDER_W
+        );
 
-        int knobY =
-                bounds.y
-                        + 80;
+        desenharSlider(g, musicaSliderBounds, musicaTrackBounds, volumeMusica);
+        desenharSlider(g, efeitosSliderBounds, efeitosTrackBounds, volumeEfeitos);
 
+        desenharIconeAudio(g, musicaMutada, musicaMuteBounds);
+        desenharIconeAudio(g, efeitosMutados, efeitosMuteBounds);
+
+        desenharPorcentagem(g, volumeMusica, musicaMuteBounds);
+        desenharPorcentagem(g, volumeEfeitos, efeitosMuteBounds);
+    }
+
+    private void desenharTextoCentralizado(Graphics2D g, String texto, int x, int y, int largura) {
+        g.setFont(labelFont);
+        g.setColor(Color.WHITE);
+
+        FontMetrics metrics = g.getFontMetrics();
+        int textoX = x + largura / 2 - metrics.stringWidth(texto) / 2;
+
+        g.drawString(texto, textoX, y);
+    }
+
+    private void desenharSlider(Graphics2D g, Rectangle sliderBounds, Rectangle trackBounds, int volume) {
         ImageRenderer.render(
                 g,
+                sliderBarra,
+                sliderBounds.x,
+                sliderBounds.y
+        );
+
+        int filledWidth = (int) ((volume / 100.0) * trackBounds.width);
+        filledWidth = Math.max(0, Math.min(trackBounds.width, filledWidth));
+
+        if (filledWidth > 0) {
+            int origemX1 = 0;
+            int origemY1 = 0;
+            int origemX2 = TRACK_OFFSET_X + filledWidth;
+            int origemY2 = SLIDER_H;
+
+            int limiteSemKnobDoAsset = SLIDER_W - 45;
+            origemX2 = Math.min(origemX2, limiteSemKnobDoAsset);
+
+            int destinoX1 = sliderBounds.x;
+            int destinoY1 = sliderBounds.y;
+            int destinoX2 = sliderBounds.x + origemX2;
+            int destinoY2 = sliderBounds.y + SLIDER_H;
+
+            g.drawImage(
+                    sliderPreenchido,
+                    destinoX1,
+                    destinoY1,
+                    destinoX2,
+                    destinoY2,
+                    origemX1,
+                    origemY1,
+                    origemX2,
+                    origemY2,
+                    null
+            );
+        }
+
+        int knobX = trackBounds.x + filledWidth - (KNOB_W / 2);
+        int knobY = sliderBounds.y + 80;
+
+        g.drawImage(
                 sliderKnob,
                 knobX,
-                knobY
+                knobY,
+                KNOB_W,
+                KNOB_H,
+                null
         );
     }
 
-    // =====================================================
-    // HOVER BOTÃO
-    // =====================================================
+    private void desenharIconeAudio(Graphics2D g, boolean mutado, Rectangle bounds) {
+        g.drawImage(
+                mutado ? iconSomOff : iconSomOn,
+                bounds.x,
+                bounds.y,
+                ICON_W,
+                ICON_H,
+                null
+        );
+    }
 
-    private void desenharBotaoHover(
-            Graphics2D g,
-            BufferedImage image,
-            Rectangle bounds
-    ) {
+    private void desenharPorcentagem(Graphics2D g, int volume, Rectangle iconBounds) {
+        g.setFont(percentFont);
+        g.setColor(Color.WHITE);
 
+        g.drawString(
+                volume + "%",
+                iconBounds.x + ICON_W + 4,
+                iconBounds.y + 31
+        );
+    }
+
+    private void renderBotoes(Graphics2D g) {
+        desenharBotaoHover(g, btnSair, sairBounds);
+    }
+
+    private void desenharBotaoHover(Graphics2D g, BufferedImage image, Rectangle bounds) {
         Point mousePosition = new Point(
                 (int) Input.mouse().getLocation().getX(),
                 (int) Input.mouse().getLocation().getY()
         );
 
-        boolean hover =
-                bounds.contains(mousePosition);
+        boolean hover = bounds.contains(mousePosition);
 
         if (hover) {
-
             g.drawImage(
                     image,
                     bounds.x - 5,
@@ -686,15 +466,44 @@ public class MenuScreen extends Screen {
                     bounds.height + 10,
                     null
             );
-
         } else {
-
-            ImageRenderer.render(
-                    g,
+            g.drawImage(
                     image,
                     bounds.x,
-                    bounds.y
+                    bounds.y,
+                    bounds.width,
+                    bounds.height,
+                    null
             );
+        }
+    }
+
+    private void atualizarCursor() {
+        Point mousePosition = new Point(
+                (int) Input.mouse().getLocation().getX(),
+                (int) Input.mouse().getLocation().getY()
+        );
+
+        boolean sobreElemento =
+                voltarBounds.contains(mousePosition)
+                        || sairBounds.contains(mousePosition)
+                        || musicaTrackBounds.contains(mousePosition)
+                        || efeitosTrackBounds.contains(mousePosition)
+                        || musicaMuteBounds.contains(mousePosition)
+                        || efeitosMuteBounds.contains(mousePosition);
+
+        if (sobreElemento && !mouseSobreElemento) {
+            Game.window().getHostControl().setCursor(
+                    Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+            );
+
+            mouseSobreElemento = true;
+        } else if (!sobreElemento && mouseSobreElemento) {
+            Game.window().getHostControl().setCursor(
+                    Cursor.getDefaultCursor()
+            );
+
+            mouseSobreElemento = false;
         }
     }
 }
