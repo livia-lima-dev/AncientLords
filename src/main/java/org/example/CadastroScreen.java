@@ -21,7 +21,11 @@ public class CadastroScreen extends Screen {
     private String username = "";
     private String email = "";
     private String password = "";
-    private String mensagemErro = "";
+
+    private String mensagemPopup = "";
+    private boolean mostrarPopup = false;
+    private boolean popupSucesso = false;
+    private long tempoPopup = 0;
 
     private Font medievalFont;
     private Font pixelFont;
@@ -65,6 +69,33 @@ public class CadastroScreen extends Screen {
         setupKeyboardInput();
 
         setupMouseInput();
+    }
+
+    @Override
+    public void prepare() {
+
+        super.prepare();
+
+        resetarTela();
+    }
+
+    private void resetarTela() {
+
+        username = "";
+        email = "";
+        password = "";
+
+        mensagemPopup = "";
+        mostrarPopup = false;
+        popupSucesso = false;
+        tempoPopup = 0;
+
+        typingUsername = false;
+        typingEmail = false;
+        typingPassword = false;
+
+        showCursor = true;
+        lastBlinkTime = System.currentTimeMillis();
     }
 
     private void loadImages() {
@@ -265,8 +296,6 @@ public class CadastroScreen extends Screen {
                             && voltarRect.contains(mousePosition)
             ) {
 
-                mensagemErro = "";
-
                 limparSelecaoCampos();
 
                 Game.screens().display("login");
@@ -372,15 +401,48 @@ public class CadastroScreen extends Screen {
                         || password.trim().isEmpty()
         ) {
 
-            mensagemErro =
-                    "Preencha todos os campos";
+            mostrarPopup(
+                    "Preencha todos os campos",
+                    false
+            );
 
             return;
         }
 
-        mensagemErro = "";
+        if (!emailValido(email)) {
+
+            mostrarPopup(
+                    "Digite um e-mail válido",
+                    false
+            );
+
+            return;
+        }
 
         Game.screens().display("inicio");
+    }
+
+    private boolean emailValido(String email) {
+
+        String emailTratado =
+                email.trim();
+
+        return emailTratado.contains("@")
+                && emailTratado.contains(".")
+                && emailTratado.indexOf("@") > 0
+                && emailTratado.lastIndexOf(".") > emailTratado.indexOf("@") + 1
+                && emailTratado.lastIndexOf(".") < emailTratado.length() - 1;
+    }
+
+    private void mostrarPopup(String mensagem, boolean sucesso) {
+
+        mensagemPopup = mensagem;
+
+        popupSucesso = sucesso;
+
+        mostrarPopup = true;
+
+        tempoPopup = System.currentTimeMillis();
     }
 
     private void selecionarCampoUsuario() {
@@ -440,7 +502,7 @@ public class CadastroScreen extends Screen {
 
         renderBotaoConfirmar(g);
 
-        renderMensagemErro(g);
+        renderPopup(g);
 
         renderBotaoVoltar(g);
     }
@@ -739,9 +801,19 @@ public class CadastroScreen extends Screen {
                 );
     }
 
-    private void renderMensagemErro(Graphics2D g) {
+    private void renderPopup(Graphics2D g) {
 
-        if (mensagemErro.isEmpty()) {
+        if (!mostrarPopup) {
+            return;
+        }
+
+        if (
+                System.currentTimeMillis()
+                        - tempoPopup > 2000
+        ) {
+
+            mostrarPopup = false;
+
             return;
         }
 
@@ -753,23 +825,92 @@ public class CadastroScreen extends Screen {
                 )
         );
 
+        FontMetrics metrics =
+                g.getFontMetrics();
+
         int x =
-                centralizarTextoX(
-                        g,
-                        mensagemErro,
-                        0,
+                (
                         screenWidth
-                );
+                                - metrics.stringWidth(mensagemPopup)
+                ) / 2;
 
         int y =
-                confirmarY + buttonHeight + 25;
+                confirmarY
+                        + buttonHeight
+                        + 25;
+
+        if (popupSucesso) {
+
+            g.setColor(
+                    new Color(
+                            40,
+                            120,
+                            40,
+                            220
+                    )
+            );
+
+        } else {
+
+            g.setColor(
+                    new Color(
+                            120,
+                            40,
+                            40,
+                            220
+                    )
+            );
+        }
+
+        g.fillRoundRect(
+                x - 20,
+                y - 28,
+                metrics.stringWidth(mensagemPopup) + 40,
+                40,
+                15,
+                15
+        );
+
+        if (popupSucesso) {
+
+            g.setColor(
+                    new Color(
+                            180,
+                            220,
+                            180
+                    )
+            );
+
+        } else {
+
+            g.setColor(
+                    new Color(
+                            220,
+                            160,
+                            160
+                    )
+            );
+        }
+
+        g.setStroke(
+                new BasicStroke(2)
+        );
+
+        g.drawRoundRect(
+                x - 20,
+                y - 28,
+                metrics.stringWidth(mensagemPopup) + 40,
+                40,
+                15,
+                15
+        );
 
         drawOutlinedText(
                 g,
-                mensagemErro,
+                mensagemPopup,
                 x,
                 y,
-                Color.RED
+                Color.WHITE
         );
     }
 
