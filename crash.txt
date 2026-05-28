@@ -1,6 +1,6 @@
-Thu May 28 12:55:48 BRT 2026 AWT-EventQueue-0 threw an exception:
+Thu May 28 17:13:46 BRT 2026 AWT-EventQueue-0 threw an exception:
 java.lang.NullPointerException: Cannot invoke "de.gurkenlabs.litiengine.gui.screens.Screen.getName()" because the return value of "de.gurkenlabs.litiengine.gui.screens.ScreenManager.current()" is null
-	at org.example.ConfiguracoesScreen.lambda$setupMouseInput$2(ConfiguracoesScreen.java:302)
+	at org.example.InicioScreen.lambda$setupMouseInput$0(InicioScreen.java:104)
 	at de.gurkenlabs.litiengine.input.Mouse.mouseMoved(Mouse.java:200)
 	at java.desktop/java.awt.Component.processMouseMotionEvent(Component.java:6671)
 	at java.desktop/java.awt.Component.processEvent(Component.java:6395)
@@ -29,14 +29,13 @@ Operating System: Windows 11
 	Architecture: amd64
 	Version: 10.0
 Memory:
-	Max heap size: 5,8 GiB
-	Current heap size: 376,0 MiB
-	Heap used: 65,2 MiB
-	Free heap: 310,8 MiB
+	Max heap size: 5,9 GiB
+	Current heap size: 380,0 MiB
+	Heap used: 99,6 MiB
+	Free heap: 280,4 MiB
 Java Version: OpenJDK Runtime Environment 17.0.19+10 
 	Vendor: Eclipse Adoptium
-Uptime: PT1.993S
-Screens: 2
-	Screen 0: 1920x1080@144hz
-	Screen 1: 1920x1080@60hz
+Uptime: PT1.808S
+Screens: 1
+	Screen 0: 1920x1080@60hz
 
