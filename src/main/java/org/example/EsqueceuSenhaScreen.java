@@ -11,53 +11,26 @@ import java.awt.image.BufferedImage;
 
 public class EsqueceuSenhaScreen extends Screen {
 
-    // =========================
-    // IMAGENS
-    // =========================
-
     private BufferedImage background;
 
     private BufferedImage confirmarButtonImage;
 
-    // =========================
-    // FONTES
-    // =========================
-
     private Font medievalFont;
-
-    // =========================
-    // INPUT EMAIL
-    // =========================
 
     private String email = "";
 
-    // =========================
-    // VALIDAÇÃO
-    // =========================
-
-    private String mensagemValidacao = "";
-
-    private boolean emailEnviado = false;
-
-    // =========================
-    // CONTROLE INPUT
-    // =========================
-
     private boolean emailSelecionado = false;
 
-    // =========================
-    // ÁREAS CLICÁVEIS
-    // =========================
+    private String mensagemPopup = "";
+    private boolean mostrarPopup = false;
+    private boolean popupSucesso = false;
+    private long tempoPopup = 0;
 
     private Rectangle emailRect;
 
     private Rectangle confirmarRect;
 
     private Rectangle voltarRect;
-
-    // =========================
-    // CONSTRUTOR
-    // =========================
 
     public EsqueceuSenhaScreen() {
 
@@ -70,25 +43,25 @@ public class EsqueceuSenhaScreen extends Screen {
         setupMouseInput();
     }
 
-    // =========================
-    // RESETAR ESTADO DA TELA
-    // =========================
-
     @Override
     public void prepare() {
 
         super.prepare();
 
-        mensagemValidacao = "";
-
-        emailEnviado = false;
-
-        emailSelecionado = false;
+        resetarTela();
     }
 
-    // =========================
-    // CARREGAR ASSETS
-    // =========================
+    private void resetarTela() {
+
+        email = "";
+
+        emailSelecionado = false;
+
+        mensagemPopup = "";
+        mostrarPopup = false;
+        popupSucesso = false;
+        tempoPopup = 0;
+    }
 
     private void loadAssets() {
 
@@ -124,27 +97,20 @@ public class EsqueceuSenhaScreen extends Screen {
         }
     }
 
-    // =========================
-    // INPUT TECLADO
-    // =========================
-
     private void setupKeyboardInput() {
 
         Input.keyboard().onKeyTyped(event -> {
 
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
 
-            // IGNORA SE NÃO ESTIVER SELECIONADO
             if (!emailSelecionado) {
                 return;
             }
 
             char c = event.getKeyChar();
 
-            // IGNORA CARACTERES INVÁLIDOS
             if (
                     c == KeyEvent.CHAR_UNDEFINED
                             || Character.isISOControl(c)
@@ -152,7 +118,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 return;
             }
 
-            // EVITA CARACTERES ESTRANHOS
             if (
                     !Character.isLetterOrDigit(c)
                             && "@._-".indexOf(c) == -1
@@ -160,7 +125,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 return;
             }
 
-            // LIMITE DE CARACTERES
             if (email.length() >= 28) {
                 return;
             }
@@ -168,13 +132,8 @@ public class EsqueceuSenhaScreen extends Screen {
             email += c;
         });
 
-        // =========================
-        // BACKSPACE
-        // =========================
-
         Input.keyboard().onKeyReleased(event -> {
 
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
@@ -183,7 +142,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 return;
             }
 
-            // APAGA 1 CARACTERE POR CLIQUE
             if (
                     emailSelecionado
                             && email.length() > 0
@@ -198,15 +156,10 @@ public class EsqueceuSenhaScreen extends Screen {
         });
     }
 
-    // =========================
-    // INPUT MOUSE
-    // =========================
-
     private void setupMouseInput() {
 
         Input.mouse().onMoved(event -> {
 
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
@@ -216,16 +169,11 @@ public class EsqueceuSenhaScreen extends Screen {
 
         Input.mouse().onClicked(event -> {
 
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
 
             Point mousePosition = event.getPoint();
-
-            // =========================
-            // VOLTAR
-            // =========================
 
             if (
                     voltarRect != null
@@ -237,10 +185,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 return;
             }
 
-            // =========================
-            // INPUT EMAIL
-            // =========================
-
             emailSelecionado = false;
 
             if (
@@ -251,54 +195,54 @@ public class EsqueceuSenhaScreen extends Screen {
                 emailSelecionado = true;
             }
 
-            // =========================
-            // CONFIRMAR
-            // =========================
-
             if (
                     confirmarRect != null
                             && confirmarRect.contains(mousePosition)
             ) {
 
-                // =========================
-                // VALIDAR E-MAIL
-                // =========================
-
-                if (
-                        email.isEmpty()
-                                || !email.contains("@")
-                                || !email.contains(".")
-                ) {
-
-                    mensagemValidacao =
-                            "Digite um e-mail válido.";
-
-                    emailEnviado = false;
-
-                } else {
-
-                    mensagemValidacao =
-                            "E-mail de recuperação enviado.";
-
-                    emailEnviado = true;
-
-                    System.out.println(
-                            "E-mail para recuperação: " + email
-                    );
-                }
+                validarEmail();
             }
         });
     }
 
-    // =========================
-    // CURSOR
-    // =========================
+    private void validarEmail() {
+
+        if (
+                email.isEmpty()
+                        || !email.contains("@")
+                        || !email.contains(".")
+        ) {
+
+            mostrarPopup(
+                    "Digite um e-mail válido.",
+                    false
+            );
+
+        } else {
+
+            mostrarPopup(
+                    "E-mail de recuperação enviado.",
+                    true
+            );
+
+            System.out.println(
+                    "E-mail para recuperação: " + email
+            );
+        }
+    }
+
+    private void mostrarPopup(String mensagem, boolean sucesso) {
+
+        mensagemPopup = mensagem;
+
+        popupSucesso = sucesso;
+
+        mostrarPopup = true;
+
+        tempoPopup = System.currentTimeMillis();
+    }
 
     private void updateCursor(Point mousePosition) {
-
-        // =========================
-        // INPUT → CURSOR TEXTO
-        // =========================
 
         if (
                 emailRect != null
@@ -313,10 +257,6 @@ public class EsqueceuSenhaScreen extends Screen {
 
             return;
         }
-
-        // =========================
-        // BOTÕES → MÃOZINHA
-        // =========================
 
         if (
                 (
@@ -339,18 +279,10 @@ public class EsqueceuSenhaScreen extends Screen {
             return;
         }
 
-        // =========================
-        // CURSOR NORMAL
-        // =========================
-
         Game.window().getRenderComponent().setCursor(
                 Cursor.getDefaultCursor()
         );
     }
-
-    // =========================
-    // TEXTO COM BORDA
-    // =========================
 
     private void drawOutlinedText(
             Graphics2D g,
@@ -374,10 +306,6 @@ public class EsqueceuSenhaScreen extends Screen {
 
         g.drawString(text, x, y);
     }
-
-    // =========================
-    // BOTÃO VOLTAR
-    // =========================
 
     private void renderBotaoVoltar(Graphics2D g) {
 
@@ -412,10 +340,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 );
     }
 
-    // =========================
-    // CENTRALIZAR TEXTO
-    // =========================
-
     private int getCenteredTextX(
             Graphics2D g,
             String text,
@@ -431,10 +355,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 );
     }
 
-    // =========================
-    // DESENHAR INPUT
-    // =========================
-
     private void drawInputBox(
             Graphics2D g,
             Rectangle rect,
@@ -442,7 +362,6 @@ public class EsqueceuSenhaScreen extends Screen {
             boolean selecionado
     ) {
 
-        // FUNDO
         g.setColor(
                 new Color(
                         35,
@@ -461,7 +380,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 18
         );
 
-        // BORDA
         if (selecionado) {
 
             g.setColor(
@@ -496,7 +414,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 18
         );
 
-        // TEXTO
         g.setFont(
                 new Font(
                         "Arial",
@@ -529,7 +446,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 Color.WHITE
         );
 
-        // CURSOR
         if (selecionado) {
 
             int cursorX =
@@ -547,10 +463,6 @@ public class EsqueceuSenhaScreen extends Screen {
         }
     }
 
-    // =========================
-    // RENDER
-    // =========================
-
     @Override
     public void render(Graphics2D g) {
 
@@ -562,10 +474,6 @@ public class EsqueceuSenhaScreen extends Screen {
         int screenHeight =
                 Game.window().getHeight();
 
-        // =========================
-        // FUNDO
-        // =========================
-
         g.drawImage(
                 background,
                 0,
@@ -576,10 +484,6 @@ public class EsqueceuSenhaScreen extends Screen {
         );
 
         renderBotaoVoltar(g);
-
-        // =========================
-        // TÍTULO
-        // =========================
 
         g.setFont(
                 medievalFont.deriveFont(34f)
@@ -599,10 +503,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 240,
                 Color.WHITE
         );
-
-        // =========================
-        // INPUT EMAIL
-        // =========================
 
         int inputWidth = 620;
 
@@ -627,63 +527,6 @@ public class EsqueceuSenhaScreen extends Screen {
                 email,
                 emailSelecionado
         );
-
-        // =========================
-        // MENSAGEM VALIDAÇÃO
-        // =========================
-
-        if (!mensagemValidacao.isEmpty()) {
-
-            g.setFont(
-                    new Font(
-                            "Arial",
-                            Font.BOLD,
-                            20
-                    )
-            );
-
-            Color mensagemColor;
-
-            if (emailEnviado) {
-
-                mensagemColor =
-                        new Color(
-                                80,
-                                220,
-                                120
-                        );
-
-            } else {
-
-                mensagemColor =
-                        new Color(
-                                220,
-                                70,
-                                70
-                        );
-            }
-
-            int mensagemX =
-                    getCenteredTextX(
-                            g,
-                            mensagemValidacao,
-                            screenWidth / 2
-                    );
-
-            int mensagemY = 445;
-
-            drawOutlinedText(
-                    g,
-                    mensagemValidacao,
-                    mensagemX,
-                    mensagemY,
-                    mensagemColor
-            );
-        }
-
-        // =========================
-        // BOTÃO CONFIRMAR
-        // =========================
 
         int confirmarWidth = 250;
 
@@ -710,5 +553,117 @@ public class EsqueceuSenhaScreen extends Screen {
                         confirmarWidth,
                         confirmarHeight
                 );
+
+        renderPopup(g, screenWidth);
+    }
+
+    private void renderPopup(Graphics2D g, int screenWidth) {
+
+        if (!mostrarPopup) {
+            return;
+        }
+
+        if (
+                System.currentTimeMillis()
+                        - tempoPopup > 2000
+        ) {
+
+            mostrarPopup = false;
+
+            return;
+        }
+
+        g.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        FontMetrics metrics =
+                g.getFontMetrics();
+
+        int x =
+                (
+                        screenWidth
+                                - metrics.stringWidth(mensagemPopup)
+                ) / 2;
+
+        int y = 445;
+
+        if (popupSucesso) {
+
+            g.setColor(
+                    new Color(
+                            40,
+                            120,
+                            40,
+                            220
+                    )
+            );
+
+        } else {
+
+            g.setColor(
+                    new Color(
+                            120,
+                            40,
+                            40,
+                            220
+                    )
+            );
+        }
+
+        g.fillRoundRect(
+                x - 20,
+                y - 28,
+                metrics.stringWidth(mensagemPopup) + 40,
+                40,
+                15,
+                15
+        );
+
+        if (popupSucesso) {
+
+            g.setColor(
+                    new Color(
+                            180,
+                            220,
+                            180
+                    )
+            );
+
+        } else {
+
+            g.setColor(
+                    new Color(
+                            220,
+                            160,
+                            160
+                    )
+            );
+        }
+
+        g.setStroke(
+                new BasicStroke(2)
+        );
+
+        g.drawRoundRect(
+                x - 20,
+                y - 28,
+                metrics.stringWidth(mensagemPopup) + 40,
+                40,
+                15,
+                15
+        );
+
+        drawOutlinedText(
+                g,
+                mensagemPopup,
+                x,
+                y,
+                Color.WHITE
+        );
     }
 }

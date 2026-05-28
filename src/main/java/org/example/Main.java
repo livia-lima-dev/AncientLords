@@ -37,7 +37,7 @@ public class Main {
         Game.screens().add(esqueceuSenhaScreen);
         Game.screens().add(menuScreen);
 
-        Game.screens().display("menu");
+        Game.screens().display("login");
         Game.start();
     }
 }

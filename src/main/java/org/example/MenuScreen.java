@@ -185,31 +185,44 @@ public class MenuScreen extends Screen {
         );
     }
 
+    private boolean estaTelaAtiva() {
+        return Game.screens().current().getName().equals(getName());
+    }
+
     private void setupInput() {
         Input.mouse().onPressed(mouseEvent -> {
+            if (!estaTelaAtiva()) {
+                return;
+            }
+
             atualizarBounds();
 
             Point mouse = mouseEvent.getPoint();
 
             if (voltarBounds.contains(mouse)) {
                 voltarAoJogo();
+                return;
             }
 
             if (sairBounds.contains(mouse)) {
                 Game.exit();
+                return;
             }
 
             if (musicaMuteBounds.contains(mouse)) {
                 musicaMutada = !musicaMutada;
+                return;
             }
 
             if (efeitosMuteBounds.contains(mouse)) {
                 efeitosMutados = !efeitosMutados;
+                return;
             }
 
             if (musicaTrackBounds.contains(mouse)) {
                 arrastandoMusica = true;
                 atualizarVolumeMusica(mouse.x);
+                return;
             }
 
             if (efeitosTrackBounds.contains(mouse)) {
@@ -219,11 +232,19 @@ public class MenuScreen extends Screen {
         });
 
         Input.mouse().onReleased(mouseEvent -> {
+            if (!estaTelaAtiva()) {
+                return;
+            }
+
             arrastandoMusica = false;
             arrastandoEfeitos = false;
         });
 
         Input.mouse().onMoved(mouseEvent -> {
+            if (!estaTelaAtiva()) {
+                return;
+            }
+
             Point mouse = mouseEvent.getPoint();
 
             if (arrastandoMusica) {
@@ -237,7 +258,13 @@ public class MenuScreen extends Screen {
 
         Input.keyboard().onKeyTyped(
                 KeyEvent.VK_ESCAPE,
-                event -> voltarAoJogo()
+                event -> {
+                    if (!estaTelaAtiva()) {
+                        return;
+                    }
+
+                    voltarAoJogo();
+                }
         );
     }
 
@@ -479,6 +506,10 @@ public class MenuScreen extends Screen {
     }
 
     private void atualizarCursor() {
+        if (!estaTelaAtiva()) {
+            return;
+        }
+
         Point mousePosition = new Point(
                 (int) Input.mouse().getLocation().getX(),
                 (int) Input.mouse().getLocation().getY()
