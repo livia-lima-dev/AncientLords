@@ -46,6 +46,9 @@ public class Main {
         EsqueceuSenhaScreen esqueceuSenhaScreen =
                 new EsqueceuSenhaScreen();
 
+        MenuScreen menuScreen =
+                new MenuScreen();
+
         // =========================
         // REGISTRAR TELAS
         // =========================
@@ -66,11 +69,13 @@ public class Main {
 
         Game.screens().add(esqueceuSenhaScreen);
 
+        Game.screens().add(menuScreen);
+
         // =========================
         // PRIMEIRA TELA
         // =========================
 
-        Game.screens().display("login");
+        Game.screens().display("menu");
 
         Game.start();
     }
