@@ -2,6 +2,7 @@ package org.example;
 
 import de.gurkenlabs.litiengine.Game;
 import de.gurkenlabs.litiengine.gui.screens.Screen;
+import de.gurkenlabs.litiengine.input.Input;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -23,6 +24,9 @@ public class VitoriaScreen extends Screen {
     private int spacing;
     private int startY;
 
+    private Rectangle jogarNovamenteRect;
+    private Rectangle inicioRect;
+
     public VitoriaScreen() {
 
         super("vitoria");
@@ -32,6 +36,8 @@ public class VitoriaScreen extends Screen {
         PlayerData.totalPartidas++;
 
         loadImages();
+
+        setupMouseInput();
     }
 
     private void loadImages() {
@@ -67,6 +73,58 @@ public class VitoriaScreen extends Screen {
                 Objects.requireNonNull(
                         getClass().getResourceAsStream(path)
                 )
+        );
+    }
+
+    // ========================================
+    // INPUT MOUSE
+    // ========================================
+
+    private void setupMouseInput() {
+
+        Input.mouse().onMoved(event -> {
+
+            // ========================================
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            // ========================================
+
+            if (!Game.screens().current().getName().equals(getName())) {
+                return;
+            }
+
+            updateCursor(event.getPoint());
+        });
+    }
+
+    // ========================================
+    // CURSOR
+    // ========================================
+
+    private void updateCursor(Point mousePosition) {
+
+        if (
+                (
+                        jogarNovamenteRect != null
+                                && jogarNovamenteRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                inicioRect != null
+                                        && inicioRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.HAND_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        Game.window().getRenderComponent().setCursor(
+                Cursor.getDefaultCursor()
         );
     }
 
@@ -129,6 +187,14 @@ public class VitoriaScreen extends Screen {
                 null
         );
 
+        jogarNovamenteRect =
+                new Rectangle(
+                        buttonX,
+                        startY,
+                        buttonWidth,
+                        buttonHeight
+                );
+
         g.drawImage(
                 inicioButton,
                 buttonX,
@@ -137,5 +203,13 @@ public class VitoriaScreen extends Screen {
                 buttonHeight,
                 null
         );
+
+        inicioRect =
+                new Rectangle(
+                        buttonX,
+                        startY + buttonHeight + spacing,
+                        buttonWidth,
+                        buttonHeight
+                );
     }
 }

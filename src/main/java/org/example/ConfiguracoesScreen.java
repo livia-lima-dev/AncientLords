@@ -82,6 +82,8 @@ public class ConfiguracoesScreen extends Screen {
 
     private Rectangle confirmarRect;
 
+    private Rectangle voltarRect;
+
     // =========================
     // POSICIONAMENTO
     // =========================
@@ -294,6 +296,16 @@ public class ConfiguracoesScreen extends Screen {
 
     private void setupMouseInput() {
 
+        Input.mouse().onMoved(event -> {
+
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            if (!Game.screens().current().getName().equals(getName())) {
+                return;
+            }
+
+            updateCursor(event.getPoint());
+        });
+
         Input.mouse().onClicked(event -> {
 
             // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
@@ -302,6 +314,20 @@ public class ConfiguracoesScreen extends Screen {
             }
 
             Point mousePosition = event.getPoint();
+
+            // =========================
+            // VOLTAR
+            // =========================
+
+            if (
+                    voltarRect != null
+                            && voltarRect.contains(mousePosition)
+            ) {
+
+                Game.screens().display("inicio");
+
+                return;
+            }
 
             // =========================
             // DIFICULDADE
@@ -395,6 +421,91 @@ public class ConfiguracoesScreen extends Screen {
     }
 
     // =========================
+    // CURSOR
+    // =========================
+
+    private void updateCursor(Point mousePosition) {
+
+        // ========================================
+        // INPUTS → CURSOR DE TEXTO
+        // ========================================
+
+        if (
+                (
+                        senhaAtualRect != null
+                                && senhaAtualRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                novaSenhaRect != null
+                                        && novaSenhaRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                confirmarSenhaRect != null
+                                        && confirmarSenhaRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.TEXT_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        // ========================================
+        // BOTÕES → MÃOZINHA
+        // ========================================
+
+        if (
+                (
+                        facilRect != null
+                                && facilRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                medioRect != null
+                                        && medioRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                dificilRect != null
+                                        && dificilRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                confirmarRect != null
+                                        && confirmarRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                voltarRect != null
+                                        && voltarRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.HAND_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        // ========================================
+        // CURSOR NORMAL
+        // ========================================
+
+        Game.window().getRenderComponent().setCursor(
+                Cursor.getDefaultCursor()
+        );
+    }
+
+    // =========================
     // TEXTO COM BORDA
     // =========================
 
@@ -418,6 +529,42 @@ public class ConfiguracoesScreen extends Screen {
         g.setColor(Color.WHITE);
 
         g.drawString(text, x, y);
+    }
+
+    // =========================
+    // BOTÃO VOLTAR
+    // =========================
+
+    private void renderBotaoVoltar(Graphics2D g) {
+
+        g.setFont(
+                medievalFont.deriveFont(22f)
+        );
+
+        String texto =
+                "‹ Voltar";
+
+        FontMetrics metrics =
+                g.getFontMetrics();
+
+        int x = 55;
+
+        int y = 75;
+
+        drawOutlinedText(
+                g,
+                texto,
+                x,
+                y
+        );
+
+        voltarRect =
+                new Rectangle(
+                        x - 10,
+                        y - 30,
+                        metrics.stringWidth(texto) + 20,
+                        40
+                );
     }
 
     // =========================
@@ -590,6 +737,8 @@ public class ConfiguracoesScreen extends Screen {
                 screenHeight,
                 null
         );
+
+        renderBotaoVoltar(g);
 
         // =====================================================
         // DIFICULDADE

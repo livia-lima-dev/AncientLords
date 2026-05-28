@@ -167,6 +167,19 @@ public class LoginScreen extends Screen {
 
     private void setupMouseInput() {
 
+        Input.mouse().onMoved(event -> {
+
+            // ========================================
+            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
+            // ========================================
+
+            if (!Game.screens().current().getName().equals(getName())) {
+                return;
+            }
+
+            updateCursor(event.getPoint());
+        });
+
         Input.mouse().onClicked(event -> {
 
             // ========================================
@@ -245,6 +258,76 @@ public class LoginScreen extends Screen {
                 validarLogin();
             }
         });
+    }
+
+    // ========================================
+    // CURSOR
+    // ========================================
+
+    private void updateCursor(Point mousePosition) {
+
+        // ========================================
+        // INPUTS → CURSOR DE TEXTO
+        // ========================================
+
+        if (
+                (
+                        usuarioRect != null
+                                && usuarioRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                senhaRect != null
+                                        && senhaRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.TEXT_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        // ========================================
+        // BOTÕES → MÃOZINHA
+        // ========================================
+
+        if (
+                (
+                        confirmarRect != null
+                                && confirmarRect.contains(mousePosition)
+                )
+                        ||
+                        (
+                                cadastrarRect != null
+                                        && cadastrarRect.contains(mousePosition)
+                        )
+                        ||
+                        (
+                                esqueceuSenhaRect != null
+                                        && esqueceuSenhaRect.contains(mousePosition)
+                        )
+        ) {
+
+            Game.window().getRenderComponent().setCursor(
+                    Cursor.getPredefinedCursor(
+                            Cursor.HAND_CURSOR
+                    )
+            );
+
+            return;
+        }
+
+        // ========================================
+        // CURSOR NORMAL
+        // ========================================
+
+        Game.window().getRenderComponent().setCursor(
+                Cursor.getDefaultCursor()
+        );
     }
 
     private void validarLogin() {
