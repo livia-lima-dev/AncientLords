@@ -24,6 +24,7 @@ public class CadastroScreen extends Screen {
     private String mensagemErro = "";
 
     private Font medievalFont;
+    private Font pixelFont;
 
     private boolean typingUsername = false;
     private boolean typingEmail = false;
@@ -104,6 +105,15 @@ public class CadastroScreen extends Screen {
                     )
             );
 
+            pixelFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    Objects.requireNonNull(
+                            getClass().getResourceAsStream(
+                                    "/assets/fontes/Pixel.ttf"
+                            )
+                    )
+            );
+
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -122,10 +132,6 @@ public class CadastroScreen extends Screen {
     private void setupKeyboardInput() {
 
         Input.keyboard().onKeyTyped(event -> {
-
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
 
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
@@ -155,10 +161,6 @@ public class CadastroScreen extends Screen {
         });
 
         Input.keyboard().onKeyReleased(event -> {
-
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
 
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
@@ -243,10 +245,6 @@ public class CadastroScreen extends Screen {
 
         Input.mouse().onMoved(event -> {
 
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
-
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
@@ -256,19 +254,11 @@ public class CadastroScreen extends Screen {
 
         Input.mouse().onClicked(event -> {
 
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
-
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
 
             Point mousePosition = event.getPoint();
-
-            // ========================================
-            // VOLTAR
-            // ========================================
 
             if (
                     voltarRect != null
@@ -283,10 +273,6 @@ public class CadastroScreen extends Screen {
 
                 return;
             }
-
-            // ========================================
-            // INPUTS
-            // ========================================
 
             if (
                     usernameRect != null
@@ -314,10 +300,6 @@ public class CadastroScreen extends Screen {
                 limparSelecaoCampos();
             }
 
-            // ========================================
-            // CONFIRMAR
-            // ========================================
-
             if (
                     confirmarRect != null
                             && confirmarRect.contains(mousePosition)
@@ -329,10 +311,6 @@ public class CadastroScreen extends Screen {
     }
 
     private void updateCursor(Point mousePosition) {
-
-        // ========================================
-        // INPUTS → CURSOR DE TEXTO
-        // ========================================
 
         if (
                 (
@@ -360,10 +338,6 @@ public class CadastroScreen extends Screen {
             return;
         }
 
-        // ========================================
-        // BOTÕES → MÃOZINHA
-        // ========================================
-
         if (
                 (
                         confirmarRect != null
@@ -384,10 +358,6 @@ public class CadastroScreen extends Screen {
 
             return;
         }
-
-        // ========================================
-        // CURSOR NORMAL
-        // ========================================
 
         Game.window().getRenderComponent().setCursor(
                 Cursor.getDefaultCursor()
@@ -460,6 +430,8 @@ public class CadastroScreen extends Screen {
 
         renderBackground(g);
 
+        renderTituloTela(g);
+
         renderCampoUsuario(g);
 
         renderCampoEmail(g);
@@ -513,7 +485,7 @@ public class CadastroScreen extends Screen {
 
         int spacing = 22;
 
-        startY = 250;
+        startY = 210;
 
         emailY =
                 startY + fieldHeight + spacing;
@@ -534,6 +506,34 @@ public class CadastroScreen extends Screen {
                 screenWidth,
                 screenHeight,
                 null
+        );
+    }
+
+    private void renderTituloTela(Graphics2D g) {
+
+        g.setFont(
+                pixelFont.deriveFont(72f)
+        );
+
+        String titulo = "Cadastre-se";
+
+        int x =
+                centralizarTextoX(
+                        g,
+                        titulo,
+                        0,
+                        screenWidth
+                );
+
+        int y =
+                (int) (screenHeight * 0.16);
+
+        drawOutlinedText(
+                g,
+                titulo,
+                x,
+                y,
+                Color.WHITE
         );
     }
 
