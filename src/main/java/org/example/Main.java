@@ -43,6 +43,9 @@ public class Main {
         PerfilScreen perfilScreen =
                 new PerfilScreen();
 
+        EsqueceuSenhaScreen esqueceuSenhaScreen =
+                new EsqueceuSenhaScreen();
+
         // =========================
         // REGISTRAR TELAS
         // =========================
@@ -60,6 +63,8 @@ public class Main {
         Game.screens().add(vitoriaScreen);
 
         Game.screens().add(perfilScreen);
+
+        Game.screens().add(esqueceuSenhaScreen);
 
         // =========================
         // PRIMEIRA TELA

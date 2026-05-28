@@ -224,12 +224,18 @@ public class LoginScreen extends Screen {
             // ESQUECEU SENHA
             // ========================================
 
+        // ========================================
+        // ESQUECEU SENHA
+        // ========================================
+
             if (
                     esqueceuSenhaRect != null
                             && esqueceuSenhaRect.contains(mousePosition)
             ) {
 
-                System.out.println("CLICOU EM ESQUECEU SENHA");
+                mensagemErro = "";
+
+                Game.screens().display("esqueceuSenha");
             }
 
             // ========================================
