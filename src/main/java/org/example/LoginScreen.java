@@ -13,7 +13,6 @@ import java.util.Objects;
 public class LoginScreen extends Screen {
 
     private BufferedImage background;
-    private BufferedImage logo;
     private BufferedImage usuarioInput;
     private BufferedImage senhaInput;
     private BufferedImage confirmarButton;
@@ -21,6 +20,8 @@ public class LoginScreen extends Screen {
     private String username = "";
     private String password = "";
     private String mensagemErro = "";
+
+    private Font pixelFont;
 
     private long lastBlinkTime = 0;
     private boolean showCursor = true;
@@ -67,13 +68,20 @@ public class LoginScreen extends Screen {
 
             background = loadImage("/assets/login/fundo_tela_login.png");
 
-            logo = loadImage("/assets/login/logo.png");
-
             usuarioInput = loadImage("/assets/login/ct_usuario.png");
 
             senhaInput = loadImage("/assets/login/ct_senha.png");
 
             confirmarButton = loadImage("/assets/login/btn_confirmar.png");
+
+            pixelFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    Objects.requireNonNull(
+                            getClass().getResourceAsStream(
+                                    "/assets/fontes/Pixel.ttf"
+                            )
+                    )
+            );
 
         } catch (Exception e) {
 
@@ -96,10 +104,6 @@ public class LoginScreen extends Screen {
 
         Input.keyboard().onKeyTyped(event -> {
 
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
-
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
@@ -111,18 +115,16 @@ public class LoginScreen extends Screen {
             }
 
             if (typingUsername) {
+
                 username += c;
 
             } else if (typingPassword) {
+
                 password += c;
             }
         });
 
         Input.keyboard().onKeyReleased(event -> {
-
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
 
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
@@ -169,10 +171,6 @@ public class LoginScreen extends Screen {
 
         Input.mouse().onMoved(event -> {
 
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
-
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
@@ -182,19 +180,11 @@ public class LoginScreen extends Screen {
 
         Input.mouse().onClicked(event -> {
 
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
-
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
 
             Point mousePosition = event.getPoint();
-
-            // ========================================
-            // USUÁRIO
-            // ========================================
 
             if (
                     usuarioRect != null
@@ -206,10 +196,6 @@ public class LoginScreen extends Screen {
                 typingPassword = false;
             }
 
-            // ========================================
-            // SENHA
-            // ========================================
-
             if (
                     senhaRect != null
                             && senhaRect.contains(mousePosition)
@@ -219,14 +205,6 @@ public class LoginScreen extends Screen {
 
                 typingPassword = true;
             }
-
-            // ========================================
-            // ESQUECEU SENHA
-            // ========================================
-
-        // ========================================
-        // ESQUECEU SENHA
-        // ========================================
 
             if (
                     esqueceuSenhaRect != null
@@ -238,10 +216,6 @@ public class LoginScreen extends Screen {
                 Game.screens().display("esqueceuSenha");
             }
 
-            // ========================================
-            // CADASTRAR
-            // ========================================
-
             if (
                     cadastrarRect != null
                             && cadastrarRect.contains(mousePosition)
@@ -251,10 +225,6 @@ public class LoginScreen extends Screen {
 
                 Game.screens().display("cadastro");
             }
-
-            // ========================================
-            // CONFIRMAR
-            // ========================================
 
             if (
                     confirmarRect != null
@@ -266,15 +236,7 @@ public class LoginScreen extends Screen {
         });
     }
 
-    // ========================================
-    // CURSOR
-    // ========================================
-
     private void updateCursor(Point mousePosition) {
-
-        // ========================================
-        // INPUTS → CURSOR DE TEXTO
-        // ========================================
 
         if (
                 (
@@ -296,10 +258,6 @@ public class LoginScreen extends Screen {
 
             return;
         }
-
-        // ========================================
-        // BOTÕES → MÃOZINHA
-        // ========================================
 
         if (
                 (
@@ -326,10 +284,6 @@ public class LoginScreen extends Screen {
 
             return;
         }
-
-        // ========================================
-        // CURSOR NORMAL
-        // ========================================
 
         Game.window().getRenderComponent().setCursor(
                 Cursor.getDefaultCursor()
@@ -444,25 +398,29 @@ public class LoginScreen extends Screen {
 
     private void renderLogo(Graphics2D g) {
 
-        int logoWidth =
-                (int) (screenWidth * 0.45);
+        g.setFont(
+                pixelFont.deriveFont(72f)
+        );
 
-        int logoHeight =
-                (int) (logoWidth * 0.28);
+        String titulo = "Ancient Lords";
 
-        int logoX =
-                (screenWidth - logoWidth) / 2;
+        int x =
+                centralizarTextoX(
+                        g,
+                        titulo,
+                        0,
+                        screenWidth
+                );
 
-        int logoY =
-                (int) (screenHeight * 0.03);
+        int y =
+                (int) (screenHeight * 0.16);
 
-        g.drawImage(
-                logo,
-                logoX,
-                logoY,
-                logoWidth,
-                logoHeight,
-                null
+        drawOutlinedText(
+                g,
+                titulo,
+                x,
+                y,
+                Color.WHITE
         );
     }
 
@@ -739,7 +697,7 @@ public class LoginScreen extends Screen {
         );
 
         String texto =
-                "Cadastrar-se";
+                "Cadastre-se";
 
         FontMetrics metrics =
                 g.getFontMetrics();
