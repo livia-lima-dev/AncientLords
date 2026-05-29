@@ -56,7 +56,7 @@ public class VitoriaScreen extends Screen {
 
             inicioButton =
                     loadImage(
-                            "/assets/finalizacao/vitoria/btn_menu.png"
+                            "/assets/finalizacao/vitoria/btn_inicio.png"
                     );
 
         } catch (Exception e) {
@@ -76,17 +76,9 @@ public class VitoriaScreen extends Screen {
         );
     }
 
-    // ========================================
-    // INPUT MOUSE
-    // ========================================
-
     private void setupMouseInput() {
 
         Input.mouse().onMoved(event -> {
-
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
 
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
@@ -95,10 +87,6 @@ public class VitoriaScreen extends Screen {
             updateCursor(event.getPoint());
         });
     }
-
-    // ========================================
-    // CURSOR
-    // ========================================
 
     private void updateCursor(Point mousePosition) {
 
