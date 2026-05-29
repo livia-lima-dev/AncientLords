@@ -17,21 +17,19 @@ public class InicioScreen extends Screen {
     private BufferedImage perfilButton;
     private BufferedImage configuracoesButton;
     private BufferedImage sairButton;
-    private BufferedImage logo;
+
+    private Font pixelFont;
+    private Font medievalFont;
 
     private Rectangle iniciarRect;
     private Rectangle continuarRect;
     private Rectangle perfilRect;
     private Rectangle configuracoesRect;
     private Rectangle sairRect;
+    private Rectangle voltarRect;
 
     private int screenWidth;
     private int screenHeight;
-
-    private int logoWidth;
-    private int logoHeight;
-    private int logoX;
-    private int logoY;
 
     private int buttonWidth;
     private int buttonHeight;
@@ -64,7 +62,23 @@ public class InicioScreen extends Screen {
 
             sairButton = loadImage("/assets/inicio/btn_sair.png");
 
-            logo = loadImage("/assets/inicio/logo.png");
+            pixelFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    Objects.requireNonNull(
+                            getClass().getResourceAsStream(
+                                    "/assets/fontes/Pixel.ttf"
+                            )
+                    )
+            );
+
+            medievalFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    Objects.requireNonNull(
+                            getClass().getResourceAsStream(
+                                    "/assets/fontes/Cinzel-Bold.ttf"
+                            )
+                    )
+            ).deriveFont(22f);
 
         } catch (Exception e) {
 
@@ -87,10 +101,6 @@ public class InicioScreen extends Screen {
 
         Input.mouse().onMoved(event -> {
 
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
-
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
@@ -100,10 +110,6 @@ public class InicioScreen extends Screen {
 
         Input.mouse().onClicked(event -> {
 
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
-
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
             }
@@ -111,8 +117,18 @@ public class InicioScreen extends Screen {
             Point mousePosition = event.getPoint();
 
             // ========================================
-            // PERFIL
+            // VOLTAR
             // ========================================
+
+            if (
+                    voltarRect != null
+                            && voltarRect.contains(mousePosition)
+            ) {
+
+                Game.screens().display("login");
+
+                return;
+            }
 
             if (
                     perfilRect != null
@@ -124,10 +140,6 @@ public class InicioScreen extends Screen {
                 return;
             }
 
-            // ========================================
-            // CONFIGURAÇÕES
-            // ========================================
-
             if (
                     configuracoesRect != null
                             && configuracoesRect.contains(mousePosition)
@@ -138,10 +150,6 @@ public class InicioScreen extends Screen {
                 return;
             }
 
-            // ========================================
-            // SAIR
-            // ========================================
-
             if (
                     sairRect != null
                             && sairRect.contains(mousePosition)
@@ -151,10 +159,6 @@ public class InicioScreen extends Screen {
             }
         });
     }
-
-    // ========================================
-    // CURSOR
-    // ========================================
 
     private void updateCursor(Point mousePosition) {
 
@@ -183,6 +187,11 @@ public class InicioScreen extends Screen {
                                 sairRect != null
                                         && sairRect.contains(mousePosition)
                         )
+                        ||
+                        (
+                                voltarRect != null
+                                        && voltarRect.contains(mousePosition)
+                        )
         ) {
 
             Game.window().getRenderComponent().setCursor(
@@ -208,7 +217,9 @@ public class InicioScreen extends Screen {
 
         renderBackground(g);
 
-        renderLogo(g);
+        renderBotaoVoltar(g);
+
+        renderTitulo(g);
 
         renderBotoes(g);
     }
@@ -218,14 +229,6 @@ public class InicioScreen extends Screen {
         screenWidth = Game.window().getWidth();
 
         screenHeight = Game.window().getHeight();
-
-        logoWidth = 700;
-
-        logoHeight = 250;
-
-        logoX = (screenWidth - logoWidth) / 2;
-
-        logoY = 10;
 
         buttonWidth = 480;
 
@@ -244,7 +247,7 @@ public class InicioScreen extends Screen {
                                                 + (spacing * 4)
                                 )
                         ) / 2
-                ) + 100;
+                ) + 40;
     }
 
     private void renderBackground(Graphics2D g) {
@@ -259,15 +262,61 @@ public class InicioScreen extends Screen {
         );
     }
 
-    private void renderLogo(Graphics2D g) {
+    private void renderBotaoVoltar(Graphics2D g) {
 
-        g.drawImage(
-                logo,
-                logoX,
-                logoY,
-                logoWidth,
-                logoHeight,
-                null
+        g.setFont(medievalFont);
+
+        String texto = "‹ Voltar";
+
+        FontMetrics metrics =
+                g.getFontMetrics();
+
+        int x = 55;
+
+        int y = 75;
+
+        drawOutlinedText(
+                g,
+                texto,
+                x,
+                y,
+                Color.WHITE
+        );
+
+        voltarRect =
+                new Rectangle(
+                        x - 10,
+                        y - 30,
+                        metrics.stringWidth(texto) + 20,
+                        40
+                );
+    }
+
+    private void renderTitulo(Graphics2D g) {
+
+        g.setFont(
+                pixelFont.deriveFont(72f)
+        );
+
+        String titulo = "Ancient Lords";
+
+        int x =
+                centralizarTextoX(
+                        g,
+                        titulo,
+                        0,
+                        screenWidth
+                );
+
+        int y =
+                (int) (screenHeight * 0.16);
+
+        drawOutlinedText(
+                g,
+                titulo,
+                x,
+                y,
+                Color.WHITE
         );
     }
 
@@ -371,5 +420,43 @@ public class InicioScreen extends Screen {
                         buttonWidth,
                         buttonHeight
                 );
+    }
+
+    private int centralizarTextoX(
+            Graphics2D g,
+            String texto,
+            int x,
+            int width
+    ) {
+
+        return x
+                + (width / 2)
+                - (
+                g.getFontMetrics()
+                        .stringWidth(texto) / 2
+        );
+    }
+
+    private void drawOutlinedText(
+            Graphics2D g,
+            String text,
+            int x,
+            int y,
+            Color mainColor
+    ) {
+
+        g.setColor(Color.BLACK);
+
+        g.drawString(text, x - 1, y - 1);
+
+        g.drawString(text, x + 1, y - 1);
+
+        g.drawString(text, x - 1, y + 1);
+
+        g.drawString(text, x + 1, y + 1);
+
+        g.setColor(mainColor);
+
+        g.drawString(text, x, y);
     }
 }

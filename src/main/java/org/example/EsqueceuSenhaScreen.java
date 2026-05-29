@@ -9,7 +9,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
-public class ConfiguracoesScreen extends Screen {
+public class EsqueceuSenhaScreen extends Screen {
 
     private BufferedImage background;
 
@@ -17,58 +17,24 @@ public class ConfiguracoesScreen extends Screen {
 
     private Font medievalFont;
 
-    private Font medievalSmallFont;
+    private String email = "";
 
-    private String senhaAtual = "";
-
-    private String novaSenha = "";
-
-    private String confirmarSenha = "";
+    private boolean emailSelecionado = false;
 
     private String mensagemPopup = "";
-
     private boolean mostrarPopup = false;
-
     private boolean popupSucesso = false;
-
     private long tempoPopup = 0;
 
-    private int campoSelecionado = 0;
-
-    /*
-        0 = nenhum
-        1 = senha atual
-        2 = nova senha
-        3 = confirmar senha
-     */
-
-    private String dificuldadeSelecionada = "Fácil";
-
-    private Rectangle facilRect;
-
-    private Rectangle medioRect;
-
-    private Rectangle dificilRect;
-
-    private Rectangle senhaAtualRect;
-
-    private Rectangle novaSenhaRect;
-
-    private Rectangle confirmarSenhaRect;
+    private Rectangle emailRect;
 
     private Rectangle confirmarRect;
 
     private Rectangle voltarRect;
 
-    private final int leftSectionX = 430;
+    public EsqueceuSenhaScreen() {
 
-    private final int rightSectionX = 1030;
-
-    private final int sectionTitleY = 200;
-
-    public ConfiguracoesScreen() {
-
-        super("configuracoes");
+        super("esqueceuSenha");
 
         loadAssets();
 
@@ -87,16 +53,14 @@ public class ConfiguracoesScreen extends Screen {
 
     private void resetarTela() {
 
-        senhaAtual = "";
-        novaSenha = "";
-        confirmarSenha = "";
+        email = "";
+
+        emailSelecionado = false;
 
         mensagemPopup = "";
         mostrarPopup = false;
         popupSucesso = false;
         tempoPopup = 0;
-
-        campoSelecionado = 0;
     }
 
     private void loadAssets() {
@@ -105,7 +69,7 @@ public class ConfiguracoesScreen extends Screen {
 
             background = ImageIO.read(
                     getClass().getResourceAsStream(
-                            "/assets/configuracoes/fundo_tela_configuracoes.png"
+                            "/assets/esqueceuSenha/fundo_tela_esqueceusenha.png"
                     )
             );
 
@@ -122,19 +86,10 @@ public class ConfiguracoesScreen extends Screen {
                     )
             ).deriveFont(30f);
 
-            medievalSmallFont = Font.createFont(
-                    Font.TRUETYPE_FONT,
-                    getClass().getResourceAsStream(
-                            "/assets/fontes/Cinzel-Regular.ttf"
-                    )
-            ).deriveFont(24f);
-
             GraphicsEnvironment ge =
                     GraphicsEnvironment.getLocalGraphicsEnvironment();
 
             ge.registerFont(medievalFont);
-
-            ge.registerFont(medievalSmallFont);
 
         } catch (Exception e) {
 
@@ -150,7 +105,7 @@ public class ConfiguracoesScreen extends Screen {
                 return;
             }
 
-            if (campoSelecionado == 0) {
+            if (!emailSelecionado) {
                 return;
             }
 
@@ -159,44 +114,22 @@ public class ConfiguracoesScreen extends Screen {
             if (
                     c == KeyEvent.CHAR_UNDEFINED
                             || Character.isISOControl(c)
-                            || Character.isWhitespace(c)
             ) {
                 return;
             }
 
             if (
                     !Character.isLetterOrDigit(c)
-                            && "@._-!?#$%&*".indexOf(c) == -1
+                            && "@._-".indexOf(c) == -1
             ) {
                 return;
             }
 
-            if (campoSelecionado == 1) {
-
-                if (senhaAtual.length() >= 18) {
-                    return;
-                }
-
-                senhaAtual += c;
+            if (email.length() >= 28) {
+                return;
             }
 
-            if (campoSelecionado == 2) {
-
-                if (novaSenha.length() >= 18) {
-                    return;
-                }
-
-                novaSenha += c;
-            }
-
-            if (campoSelecionado == 3) {
-
-                if (confirmarSenha.length() >= 18) {
-                    return;
-                }
-
-                confirmarSenha += c;
-            }
+            email += c;
         });
 
         Input.keyboard().onKeyReleased(event -> {
@@ -210,38 +143,14 @@ public class ConfiguracoesScreen extends Screen {
             }
 
             if (
-                    campoSelecionado == 1
-                            && senhaAtual.length() > 0
+                    emailSelecionado
+                            && email.length() > 0
             ) {
 
-                senhaAtual =
-                        senhaAtual.substring(
+                email =
+                        email.substring(
                                 0,
-                                senhaAtual.length() - 1
-                        );
-            }
-
-            if (
-                    campoSelecionado == 2
-                            && novaSenha.length() > 0
-            ) {
-
-                novaSenha =
-                        novaSenha.substring(
-                                0,
-                                novaSenha.length() - 1
-                        );
-            }
-
-            if (
-                    campoSelecionado == 3
-                            && confirmarSenha.length() > 0
-            ) {
-
-                confirmarSenha =
-                        confirmarSenha.substring(
-                                0,
-                                confirmarSenha.length() - 1
+                                email.length() - 1
                         );
             }
         });
@@ -271,59 +180,19 @@ public class ConfiguracoesScreen extends Screen {
                             && voltarRect.contains(mousePosition)
             ) {
 
-                Game.screens().display("inicio");
+                Game.screens().display("login");
 
                 return;
             }
 
-            if (
-                    facilRect != null
-                            && facilRect.contains(mousePosition)
-            ) {
-
-                dificuldadeSelecionada = "Fácil";
-            }
+            emailSelecionado = false;
 
             if (
-                    medioRect != null
-                            && medioRect.contains(mousePosition)
+                    emailRect != null
+                            && emailRect.contains(mousePosition)
             ) {
 
-                dificuldadeSelecionada = "Médio";
-            }
-
-            if (
-                    dificilRect != null
-                            && dificilRect.contains(mousePosition)
-            ) {
-
-                dificuldadeSelecionada = "Difícil";
-            }
-
-            campoSelecionado = 0;
-
-            if (
-                    senhaAtualRect != null
-                            && senhaAtualRect.contains(mousePosition)
-            ) {
-
-                campoSelecionado = 1;
-            }
-
-            if (
-                    novaSenhaRect != null
-                            && novaSenhaRect.contains(mousePosition)
-            ) {
-
-                campoSelecionado = 2;
-            }
-
-            if (
-                    confirmarSenhaRect != null
-                            && confirmarSenhaRect.contains(mousePosition)
-            ) {
-
-                campoSelecionado = 3;
+                emailSelecionado = true;
             }
 
             if (
@@ -331,43 +200,35 @@ public class ConfiguracoesScreen extends Screen {
                             && confirmarRect.contains(mousePosition)
             ) {
 
-                validarSenha();
+                validarEmail();
             }
         });
     }
 
-    private void validarSenha() {
+    private void validarEmail() {
 
         if (
-                senhaAtual.trim().isEmpty()
-                        || novaSenha.trim().isEmpty()
-                        || confirmarSenha.trim().isEmpty()
+                email.isEmpty()
+                        || !email.contains("@")
+                        || !email.contains(".")
         ) {
 
             mostrarPopup(
-                    "Preencha todos os campos",
+                    "Digite um e-mail válido.",
                     false
             );
 
-            return;
-        }
-
-        if (!novaSenha.equals(confirmarSenha)) {
+        } else {
 
             mostrarPopup(
-                    "As senhas informadas não coincidem.",
-                    false
+                    "E-mail de recuperação enviado.",
+                    true
             );
 
-            return;
+            System.out.println(
+                    "E-mail para recuperação: " + email
+            );
         }
-
-        mostrarPopup(
-                "Senha alterada com sucesso.",
-                true
-        );
-
-        System.out.println("Senha alterada");
     }
 
     private void mostrarPopup(String mensagem, boolean sucesso) {
@@ -384,20 +245,8 @@ public class ConfiguracoesScreen extends Screen {
     private void updateCursor(Point mousePosition) {
 
         if (
-                (
-                        senhaAtualRect != null
-                                && senhaAtualRect.contains(mousePosition)
-                )
-                        ||
-                        (
-                                novaSenhaRect != null
-                                        && novaSenhaRect.contains(mousePosition)
-                        )
-                        ||
-                        (
-                                confirmarSenhaRect != null
-                                        && confirmarSenhaRect.contains(mousePosition)
-                        )
+                emailRect != null
+                        && emailRect.contains(mousePosition)
         ) {
 
             Game.window().getRenderComponent().setCursor(
@@ -411,24 +260,9 @@ public class ConfiguracoesScreen extends Screen {
 
         if (
                 (
-                        facilRect != null
-                                && facilRect.contains(mousePosition)
+                        confirmarRect != null
+                                && confirmarRect.contains(mousePosition)
                 )
-                        ||
-                        (
-                                medioRect != null
-                                        && medioRect.contains(mousePosition)
-                        )
-                        ||
-                        (
-                                dificilRect != null
-                                        && dificilRect.contains(mousePosition)
-                        )
-                        ||
-                        (
-                                confirmarRect != null
-                                        && confirmarRect.contains(mousePosition)
-                        )
                         ||
                         (
                                 voltarRect != null
@@ -454,7 +288,8 @@ public class ConfiguracoesScreen extends Screen {
             Graphics2D g,
             String text,
             int x,
-            int y
+            int y,
+            Color mainColor
     ) {
 
         g.setColor(Color.BLACK);
@@ -467,7 +302,7 @@ public class ConfiguracoesScreen extends Screen {
 
         g.drawString(text, x + 1, y + 1);
 
-        g.setColor(Color.WHITE);
+        g.setColor(mainColor);
 
         g.drawString(text, x, y);
     }
@@ -492,7 +327,8 @@ public class ConfiguracoesScreen extends Screen {
                 g,
                 texto,
                 x,
-                y
+                y,
+                Color.WHITE
         );
 
         voltarRect =
@@ -522,21 +358,9 @@ public class ConfiguracoesScreen extends Screen {
     private void drawInputBox(
             Graphics2D g,
             Rectangle rect,
-            String titulo,
             String texto,
             boolean selecionado
     ) {
-
-        g.setFont(
-                medievalSmallFont.deriveFont(22f)
-        );
-
-        drawOutlinedText(
-                g,
-                titulo,
-                rect.x,
-                rect.y - 15
-        );
 
         g.setColor(
                 new Color(
@@ -618,7 +442,8 @@ public class ConfiguracoesScreen extends Screen {
                 g,
                 texto,
                 textX,
-                textY
+                textY,
+                Color.WHITE
         );
 
         if (selecionado) {
@@ -632,7 +457,8 @@ public class ConfiguracoesScreen extends Screen {
                     g,
                     "|",
                     cursorX,
-                    textY
+                    textY,
+                    Color.WHITE
             );
         }
     }
@@ -660,188 +486,56 @@ public class ConfiguracoesScreen extends Screen {
         renderBotaoVoltar(g);
 
         g.setFont(
-                medievalFont.deriveFont(30f)
+                medievalFont.deriveFont(34f)
         );
 
-        String dificuldadeTitulo =
-                "DIFICULDADE";
+        String titulo =
+                "Digite seu e-mail para recuperar sua senha";
 
         drawOutlinedText(
                 g,
-                dificuldadeTitulo,
+                titulo,
                 getCenteredTextX(
                         g,
-                        dificuldadeTitulo,
-                        leftSectionX
+                        titulo,
+                        screenWidth / 2
                 ),
-                sectionTitleY
+                240,
+                Color.WHITE
         );
 
-        g.setFont(
-                medievalSmallFont.deriveFont(28f)
-        );
+        int inputWidth = 620;
 
-        int optionStartY = 320;
-
-        int optionSpacing = 95;
-
-        String facilTexto =
-                dificuldadeSelecionada.equals("Fácil")
-                        ? "> FÁCIL <"
-                        : "FÁCIL";
-
-        drawOutlinedText(
-                g,
-                facilTexto,
-                getCenteredTextX(
-                        g,
-                        facilTexto,
-                        leftSectionX
-                ),
-                optionStartY
-        );
-
-        facilRect =
-                new Rectangle(
-                        leftSectionX - 120,
-                        optionStartY - 45,
-                        240,
-                        60
-                );
-
-        String medioTexto =
-                dificuldadeSelecionada.equals("Médio")
-                        ? "> MÉDIO <"
-                        : "MÉDIO";
-
-        drawOutlinedText(
-                g,
-                medioTexto,
-                getCenteredTextX(
-                        g,
-                        medioTexto,
-                        leftSectionX
-                ),
-                optionStartY + optionSpacing
-        );
-
-        medioRect =
-                new Rectangle(
-                        leftSectionX - 120,
-                        optionStartY + optionSpacing - 45,
-                        240,
-                        60
-                );
-
-        String dificilTexto =
-                dificuldadeSelecionada.equals("Difícil")
-                        ? "> DIFÍCIL <"
-                        : "DIFÍCIL";
-
-        drawOutlinedText(
-                g,
-                dificilTexto,
-                getCenteredTextX(
-                        g,
-                        dificilTexto,
-                        leftSectionX
-                ),
-                optionStartY + (optionSpacing * 2)
-        );
-
-        dificilRect =
-                new Rectangle(
-                        leftSectionX - 120,
-                        optionStartY + (optionSpacing * 2) - 45,
-                        240,
-                        60
-                );
-
-        g.setFont(
-                medievalFont.deriveFont(30f)
-        );
-
-        String senhaTitulo =
-                "REDEFINIR SENHA";
-
-        drawOutlinedText(
-                g,
-                senhaTitulo,
-                getCenteredTextX(
-                        g,
-                        senhaTitulo,
-                        rightSectionX
-                ),
-                sectionTitleY
-        );
-
-        int inputWidth = 520;
-
-        int inputHeight = 60;
+        int inputHeight = 65;
 
         int inputX =
-                rightSectionX - (inputWidth / 2);
+                (screenWidth / 2) - (inputWidth / 2);
 
-        int firstInputY = 270;
+        int inputY = 330;
 
-        int inputSpacing = 110;
-
-        senhaAtualRect =
+        emailRect =
                 new Rectangle(
                         inputX,
-                        firstInputY,
-                        inputWidth,
-                        inputHeight
-                );
-
-        novaSenhaRect =
-                new Rectangle(
-                        inputX,
-                        firstInputY + inputSpacing,
-                        inputWidth,
-                        inputHeight
-                );
-
-        confirmarSenhaRect =
-                new Rectangle(
-                        inputX,
-                        firstInputY + (inputSpacing * 2),
+                        inputY,
                         inputWidth,
                         inputHeight
                 );
 
         drawInputBox(
                 g,
-                senhaAtualRect,
-                "Senha atual",
-                senhaAtual,
-                campoSelecionado == 1
+                emailRect,
+                email,
+                emailSelecionado
         );
 
-        drawInputBox(
-                g,
-                novaSenhaRect,
-                "Nova senha",
-                novaSenha,
-                campoSelecionado == 2
-        );
+        int confirmarWidth = 250;
 
-        drawInputBox(
-                g,
-                confirmarSenhaRect,
-                "Confirmar nova senha",
-                confirmarSenha,
-                campoSelecionado == 3
-        );
-
-        int confirmarWidth = 240;
-
-        int confirmarHeight = 80;
+        int confirmarHeight = 85;
 
         int confirmarX =
-                rightSectionX - (confirmarWidth / 2);
+                (screenWidth / 2) - (confirmarWidth / 2);
 
-        int confirmarY = 620;
+        int confirmarY = 470;
 
         g.drawImage(
                 confirmarButtonImage,
@@ -890,18 +584,13 @@ public class ConfiguracoesScreen extends Screen {
         FontMetrics metrics =
                 g.getFontMetrics();
 
-        int popupCenterX =
-                confirmarSenhaRect.x
-                        + confirmarSenhaRect.width / 2;
-
         int x =
-                popupCenterX
-                        - metrics.stringWidth(mensagemPopup) / 2;
+                (
+                        screenWidth
+                                - metrics.stringWidth(mensagemPopup)
+                ) / 2;
 
-        int y =
-                confirmarSenhaRect.y
-                        + confirmarSenhaRect.height
-                        + 45;
+        int y = 445;
 
         if (popupSucesso) {
 
@@ -973,7 +662,8 @@ public class ConfiguracoesScreen extends Screen {
                 g,
                 mensagemPopup,
                 x,
-                y
+                y,
+                Color.WHITE
         );
     }
 }
