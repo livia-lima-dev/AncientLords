@@ -56,7 +56,7 @@ public class DerrotaScreen extends Screen {
 
             inicioButton =
                     loadImage(
-                            "/assets/finalizacao/derrota/btn_menu.png"
+                            "/assets/finalizacao/derrota/btn_inicio.png"
                     );
 
         } catch (Exception e) {
@@ -76,17 +76,9 @@ public class DerrotaScreen extends Screen {
         );
     }
 
-    // ========================================
-    // INPUT MOUSE
-    // ========================================
-
     private void setupMouseInput() {
 
         Input.mouse().onMoved(event -> {
-
-            // ========================================
-            // IGNORA INPUT SE A TELA NÃO ESTIVER ATIVA
-            // ========================================
 
             if (!Game.screens().current().getName().equals(getName())) {
                 return;
@@ -95,10 +87,6 @@ public class DerrotaScreen extends Screen {
             updateCursor(event.getPoint());
         });
     }
-
-    // ========================================
-    // CURSOR
-    // ========================================
 
     private void updateCursor(Point mousePosition) {
 
@@ -148,9 +136,8 @@ public class DerrotaScreen extends Screen {
         screenHeight =
                 Game.window().getHeight();
 
-        buttonWidth = 360;
-
-        buttonHeight = 78;
+        buttonWidth = 440;
+        buttonHeight = 96;
 
         buttonX =
                 (screenWidth - buttonWidth) / 2;
